@@ -1,8 +1,10 @@
-# FIX :
-string seem to have double first char once in interpreter
-flesh out compiler
+## FIX :
+string prints have twice the first char in interpreter
+
+### flesh out compiler
 	load floats
 	produce instructions
-flesh out language
+	
+### flesh out language
 	support functions
 	support classes
