@@ -5,6 +5,7 @@
 - load floats
 - produce instructions
 - switch to computed goto : https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/
+- implement Nan tagging : https://github.com/wren-lang/wren/blob/master/src/vm/wren_value.h
 
 #### flesh out the language
 - support functions
