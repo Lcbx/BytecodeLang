@@ -1,9 +1,7 @@
 #include "common.h"
 
 
-
-
-const enum Type {
+enum Type {
 	None_,
 
 	False_,
@@ -16,6 +14,7 @@ const enum Type {
 	Float_,
 	String_,
 };
+
 const String Type_string[] = {
 	"None",
 	"False",
@@ -46,7 +45,6 @@ public:
 	Type type = None_;
 	Value content;
 
-	void test() { DEBUG(std::cout << "BIRTH " << Type_string[type] << " : " << toString() << "\n";) }
 	Variable() {}
 	Variable(Type t) { content.asInt = 0;  type = t; }
 	Variable(Bool t) { content.asInt = 0;  type = t ? True_ : False_; }
@@ -57,8 +55,8 @@ public:
 
 
 	~Variable() {
-		DEBUG(std::cout << "DEATH " << Type_string[type] << " : "<< toString() << "\n";)
-		if (type == String_) delete content.asString;
+		DEBUG(std::cout << "DEATH of a " << Type_string[type] << " : "<< toString() << "\n";)
+		if (type == String_ && content.asString!=nullptr) delete content.asString;
 	}
 
 
@@ -87,7 +85,9 @@ public:
 
 	static void copy(const Variable& from, Variable& to) {
 		to.type = from.type;
-		if (from.type == String_) to.content.asString = new String(*from.content.asString);
+		if (from.type == String_){
+			to.content.asString = new String(*from.content.asString);
+		}
 		else to.content = from.content;
 	}
 };

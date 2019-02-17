@@ -1,9 +1,10 @@
 ### FIX :
-- string prints have twice the first char in interpreter
+- None
 
 #### flesh out the compiler
- - load floats
+- load floats
 - produce instructions
+- switch to computed goto : https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/
 
 #### flesh out the language
 - support functions

@@ -6,15 +6,6 @@
 #include "opcodes.h"
 
 
-#define DEBUG_OPTION
-
-
-#ifdef DEBUG_OPTION
-#define DEBUG( content ) content
-#else
-#define DEBUG( content )
-#endif
-
 class ByteCode {
 public:
 
@@ -40,10 +31,10 @@ class Interpreter {
 public:
 	std::stack<Variable> stack;
 	std::deque<Variable> registers;
-	Interpreter() : registers(256) {}
+	Interpreter() : registers(0) {} //max 256
 
 	inline Variable& top() { return stack.top(); }
-	Variable pop() { Variable var; Variable::copy(top(), var); stack.pop(); return var; }
+	Variable pop() { Variable var(top()); stack.pop(); return var; }
 	template<typename T> void push(T arg) { stack.emplace<Variable>(arg); }
 	
 	
@@ -113,7 +104,7 @@ public:
 			case OP_STRING: {
 				String s("");
 				DEBUG(std::cout << "string ";)
-				for (char c = code.peek(); c != 0; c = code.next()) {
+				for (char c = code.next(); c != 0; c = code.next()) {
 					s += c;
 					DEBUG(std::cout << c << std::flush;)
 				}
@@ -129,7 +120,6 @@ public:
 				// compiler says no copy construction #WorkAroundFTW
 				push(None_);
 				Variable::copy(var, top());
-				//
 				DEBUG(std::cout << "LOAD " << +address << " : " << var.toString() << std::endl;)
 				break;
 			}
@@ -243,8 +233,10 @@ public:
 			
 			case OP_DEBUG_STACK: {
 				std::cout << "<stack> \n";
-				for (auto it : stack._Get_container()) {
-					std::cout << "# " << it.toString() << std::endl;
+				std::stack<Variable> temp = std::stack<Variable>(stack);
+				while (!temp.empty()) {
+					std::cout << "# " << temp.top().toString() << std::endl;
+					temp.pop();
 				}
 				break;
 			}
@@ -266,7 +258,9 @@ int main() {
 	//char code[] = { 0, };
 	//o.execute(code, 1);
 	o.executeFromFile("test.hex");
+	uchar c = '\026';
+	o.execute(&c, 1);
 
-	int i;
-	std::cin >> i;
+	//int i;
+	//std::cin >> i;
 }

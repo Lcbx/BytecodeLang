@@ -13,7 +13,7 @@ typedef std::string String;
 
 
 
-//#define DEBUG_OPTION
+#define DEBUG_OPTION
 
 #ifdef DEBUG_OPTION
 #define DEBUG( content ) content
