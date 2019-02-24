@@ -334,7 +334,7 @@ def Primary():
 	if token[0] == NUMERAL:                           
 		instructions.append(OP_INT)
 		val = token[1]
-		b = [val>>24, (val & 0xFF0000)>>16, (val & 0xFF00) >> 8, val & 255 ]
+		b = [val & 255, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, val>>24 ]
 		instructions.extend(b)
 		print("INT : ", b)
 	
