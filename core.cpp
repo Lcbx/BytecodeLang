@@ -102,10 +102,10 @@ public:
 			}
 			
 			case OP_STRING: {
-				String s("");
+				String* s = new String();
 				DEBUG(std::cout << "string ";)
 				for (char c = code.next(); c != 0; c = code.next()) {
-					s += c;
+					*s += c;
 					DEBUG(std::cout << c << std::flush;)
 				}
 				DEBUG(std::cout << std::endl;)

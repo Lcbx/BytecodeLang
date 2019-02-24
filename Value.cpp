@@ -46,16 +46,17 @@ public:
 	Value content;
 
 	Variable() {}
-	Variable(Type t) { content.asInt = 0;  type = t; }
-	Variable(Bool t) { content.asInt = 0;  type = t ? True_ : False_; }
-	Variable(Int i) { content.asInt = i; type = Int_; }
-	Variable(Float f) { content.asFloat = f; type = Float_; }
-	Variable(String s) { content.asString = new String(s); type = String_; }
+	Variable(Type t){ 	type = t; }
+	Variable(Bool t){ 	type = t ? True_ : False_; }
+	Variable(Int i){ 	content.asInt = i; type = Int_; }
+	Variable(Float f){ 	content.asFloat = f; type = Float_; }
+	Variable(String s){ content.asString = new String(s); type = String_; }
+	Variable(String* s){content.asString = s; type = String_; }
 	Variable(const Variable& v) { copy(v, *this); }
 
 
 	~Variable() {
-		DEBUG(std::cout << "DEATH of a " << Type_string[type] << " : "<< toString() << "\n";)
+		//DEBUG(std::cout << "DEATH of a " << Type_string[type] << " : "<< toString() << "\n";)
 		if (type == String_ && content.asString!=nullptr) delete content.asString;
 	}
 
