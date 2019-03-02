@@ -1,5 +1,5 @@
 ### FIX :
-- make it so tokenization only uses NAME, STRING, FLOAT, INT, OP token types
+- None
 
 
 #### flesh out the compiler
@@ -14,7 +14,7 @@
 
 ### technical ideas
 - concern : we can have contiguous memory through STL in vectors and in classes, but map seems hard...
-- only use dynamic allocation of arrays as hardcoded data structure, then implement maps, vectors and lists as "normal" classes that are loaded  on vm start (?)
+- (?) only use dynamic allocation of arrays as hardcoded data structure, then implement maps, vectors and lists as "normal" classes that are loaded  on vm start - simpler vm and more flexible BUT that makes for a lot of homemade code and potential bugs
 - 1.5 pass : parse and identify statements in one pass,
 but each statement is recursive from the one before within a scope,
 so some analysis on type and variable use can be done.

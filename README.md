@@ -12,16 +12,16 @@ The eventual goal is to make a class-based, duck-typed, heavily python-inspired 
 Ex:
 ``` dart
 class Bird
-	//implicit type of int
+	# implicit type of int
 	wingspan = 1
-	//creating an Object is as simple as calling the class name like a function
+	# creating an Object is as simple as calling the class name like a function
 	mate = Bird()
-	//declaring a function
+	# declaring a function
 	fly()
-		//access to members will be made with a @, faster than "self." and readable
+		# access to members will be made with a @, faster than "self." and readable
 		return @wingspan * 40
 	caw()
-		//with a 'no unecessary chatter' philosophy, print, log, input and output will be a similar to c++ cout operators
+		# with a 'no unecessary chatter' philosophy, print, log, input and output will be a similar to c++ cout operators
 		<< "caaaw"
 
 class Hawk(Bird)
@@ -33,10 +33,10 @@ class Plane
 	fly()
 		return 150
 		
-// when out of a class, variables and functions must be declared with "var" and "func"
+# when out of a class, variables and functions must be declared with "var" and "func"
 var test = [Bird(), Hawk(), Plane()]
 for obj in test
-	// string interpolation and conversion are implicit
+	# string interpolation and conversion are implicit
 	<< "object flying at " obj.fly() "mph"
 	
 ```
@@ -65,10 +65,10 @@ That would allow us to use all those fast and powerfull c++ libraries. It would 
 
  On a lighter note, i think that implementing **double dispatch** would be fun and  easy as adding syntactic sugar like this : 
 ``` dart
-// code to desugar
+# code to desugar
 func collide(a, b) : collide(a : Hawk, b) or collide(a : Plane, b : Bird)
 
-// resulting code
+# resulting code
 func collide(a,b)
 	if a : Hawk
 		return collide_Asteroid(a, b)
@@ -80,10 +80,10 @@ However, at least at the beginning, types will not track the inheritance chain :
 
 Also, **multiple inheritence** should be easy to add since every class will have it's own version of a function ; i don't think diamond inheritance will be permitted though.
 ``` dart
-// that would be Awesome !
+# that would be Awesome !
 class Hawk(Bird,Canivore)
 	pass
-// "Error diamond inheritance : Bird and BirdOfPrey both are Bird" 
+# "Error diamond inheritance : Bird and BirdOfPrey both are Bird" 
 class Howl(Bird, BirdOfPrey)
 	pass
 ```
