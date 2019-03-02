@@ -11,6 +11,8 @@ args = parser.parse_args()
 class TOKEN:
 	def __init__(self, value):
 		self.value = value
+	def __str__(self):
+		return type(self).__name__ + ":" + str(self.value)
 class NAME(TOKEN):
 	pass
 class STRING(TOKEN):
@@ -21,8 +23,6 @@ class INT(TOKEN):
 	pass
 class OP(TOKEN):
 	pass
-class END_OF_FILE(TOKEN):
-	pass
 
 ####################################
 ## parsing globals and utils
@@ -30,6 +30,9 @@ class END_OF_FILE(TOKEN):
 
 # current line in code
 line = 0
+
+# if we reached the end of file
+EOF = False
 
 # last and current char
 last = ""
@@ -48,7 +51,10 @@ def advance():
 	global current
 	last = current
 	current = file.read(1)
-	# returns "" if end of file
+	global EOF
+	if current == "":
+		EOF = True
+	# current = "" if end of file
 
 
 ####################################
@@ -65,10 +71,7 @@ def next():
 		if current == "":
 			# try advancing
 			advance()
-			# still nothing ? probably eof
-			if current == "":
-				return END_OF_FILE(None)
-
+		
 		# puny spaces
 		while current == " ":
 			advance()
@@ -84,7 +87,7 @@ def next():
 			line+=1
 			advance()
 	
-	# operators (can be with a = behind)
+	# operators (there can be with a = behind)
 	if current in "=!><-+/*" and current != "":
 		advance()
 		if current=="=":
@@ -145,22 +148,77 @@ def next():
 			return INT(int(n))
 	
 	# should not get here unless it's the end of file
-	#print("END", type(current), current,"-", len(current))
-	return END_OF_FILE(None)
+	print("Reached the end of parse function : type", type(current),"value", current, "length", len(current), "line", line)
+	return
 
 
 ####################################
 ## the recursive code generator
 ####################################
 
+token = None
+def consume(Type):
+	global token
+	if token == None:
+		token = next()
+	if type(token) is Type:
+		token = None
+		return token.value
+	return False
+
+
 def Statement():
-	token = next()
-	if type(token) is END_OF_FILE:		
-		return
-	print(type(token), token.value, "line", line)
-	#equality()
-	Statement()
-	return token
+	inst_u = Unary()
+	global EOF
+	if EOF:
+		return inst_u
+	inst_s = Statement()
+	inst_u.extend(inst_s)
+	return inst_u
+		
+def Unary():
+	prefix = consume(OP)
+	inst_p = Primary()
+	if prefix:
+		if prefix == "!" or prefix == "-":
+			inst_p.append(OP_NEG)
+		else :
+			print("unknown prefix operator", prefix, "line", line)
+	return inst_p
+
+
+import sys
+
+def Primary():
+	inst = []
+	global token
+	if token is None:
+		token = next()
+	
+	print(token)
+	sys.stdout.flush()
+
+	if type(token) is FLOAT:
+		#inst.append(OP_FLOAT)
+		pass
+	if type(token) is INT:
+		inst.append(OP_INT)
+		val = token.value
+		b = [val & 255, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, val>>24 ]
+		inst.extend(b)
+	if type(token) is STRING:
+		inst.append(OP_STRING)
+		for c in token.value:
+			inst.append(ord(c))
+		inst.append(0)
+	token = None
+	print(inst)
+	return inst
+
+
+
+
+
 
 
 instructions = []
