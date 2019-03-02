@@ -1,5 +1,6 @@
 ### FIX :
-- None
+- make it so tokenization only uses NAME, STRING, FLOAT, INT, OP token types
+
 
 #### flesh out the compiler
 - load floats

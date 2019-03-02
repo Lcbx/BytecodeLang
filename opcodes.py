@@ -38,7 +38,7 @@ operations = [
 cppFile = "#pragma once\n#include \"common.h\"\n\n\n// generated header, see opcodes.py\n"
 for n, name in enumerate(operations):
 	# declares opcodes in python
-	exec("%s = %d" % (name, n ))
+	exec( name + " = " + str(n) )
 	cppFile += ("const uchar " + name + " = " + str(n) + ";\n")
 
 # verify if opcodes are up to date
