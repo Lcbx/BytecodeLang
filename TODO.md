@@ -3,15 +3,14 @@
 
 
 #### flesh out the compiler
-- load floats
-- produce instructions
+- produce instructions (WIP)
 - switch to computed goto : https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/
 - implement Nan tagging : https://github.com/wren-lang/wren/blob/master/src/vm/wren_value.h
 
 #### flesh out the language
 - support functions
+- support basic data structures
 - support classes
-- support data structures
 
 ### technical ideas
 - concern : we can have contiguous memory through STL in vectors and in classes, but map seems hard...
