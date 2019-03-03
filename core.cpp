@@ -170,8 +170,8 @@ public:
 			}
 
 #define BINARY(operator, error) {		\
-		Variable a = pop();	\
 		Variable b = pop();	\
+		Variable a = pop();	\
 		if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {		\
 			Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;		\
 			Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;		\

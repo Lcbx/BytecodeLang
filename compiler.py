@@ -1,6 +1,6 @@
 from opcodes import *
 import argparse
-
+import struct
 
 parser = argparse.ArgumentParser(description='homemade compiler for project scripting language')
 parser.add_argument("-i", '--input', nargs = '?', default = "./test.txt", help='path and name of file' )
@@ -38,15 +38,8 @@ EOF = False
 last = ""
 current = ""
 
-# should stay instead of advance 
-stay = False
-
 # reads the next char
 def advance():
-	global stay
-	if stay:
-		stay = False
-		return
 	global last
 	global current
 	last = current
@@ -65,13 +58,8 @@ def advance():
 def next():
 
 	# non-relevant drivel
-	while current == "" or current == " " or current == "#" or current == "\n":
-		
-		# empty string
-		if current == "":
-			# try advancing
-			advance()
-		
+	while current == " " or current == "#" or current == "\n":
+			
 		# puny spaces
 		while current == " ":
 			advance()
@@ -93,8 +81,9 @@ def next():
 		if current=="=":
 			return OP(last+current)
 		else:
-			global stay
-			stay = True
+			#global stay
+			#stay = True
+			print("parser : operator, last+current is ", last+current, "line", line)
 			return OP(last)
 	
 	# name
@@ -159,28 +148,60 @@ def next():
 token = None
 def consume(Type):
 	global token
-	if token == None:
-		token = next()
 	if type(token) is Type:
-		token = None
-		return token.value
+		value = token.value
+		token = next()
+		return value
 	return False
 
+def Program():
+	# eventually those things will go into parser
+	# if not, the parser thinks it's EOF
+	advance()
+	# if not, consume won't work at first
+	global token
+	token = next()
+	return Statement()
 
 def Statement():
-	inst_u = Unary()
 	global EOF
 	if EOF:
+		return []
+	print("statement line", line, "token is", token)
+	sys.stdout.flush()
+	name = consume(NAME)
+	if name:
+		inst_u = Addition()
+		inst_s = Statement()
+		inst_u.extend(inst_s)
 		return inst_u
-	inst_s = Statement()
-	inst_u.extend(inst_s)
+	else:
+		print("problem line", line, "got", token, "instead")
+
+def Addition():
+	inst_m = Multiply()
+	return inst_m
+
+def Multiply():
+	inst_u = Unary()
+	op = consume(OP)
+	if op:
+		if op in "*/":
+			inst_p = Primary()
+			inst_u.extend(inst_p)
+			if op == "*":
+				inst_u.append(OP_MUL)
+			if op == "/":
+				inst_u.append(OP_DIV)
+		else :
+			print("invalid operator", op, "line", line)
 	return inst_u
-		
+
 def Unary():
 	prefix = consume(OP)
 	inst_p = Primary()
 	if prefix:
-		if prefix == "!" or prefix == "-":
+		if prefix in "!-":
 			inst_p.append(OP_NEG)
 		else :
 			print("unknown prefix operator", prefix, "line", line)
@@ -192,38 +213,41 @@ import sys
 def Primary():
 	inst = []
 	global token
-	if token is None:
-		token = next()
-	
+
 	print(token)
 	sys.stdout.flush()
 
 	if type(token) is FLOAT:
-		#inst.append(OP_FLOAT)
-		pass
+		inst.append(OP_FLOAT)
+		for b in struct.pack("f", token.value):
+			inst.append(b)
+	
 	if type(token) is INT:
 		inst.append(OP_INT)
 		val = token.value
 		b = [val & 255, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, val>>24 ]
 		inst.extend(b)
+	
 	if type(token) is STRING:
 		inst.append(OP_STRING)
 		for c in token.value:
 			inst.append(ord(c))
 		inst.append(0)
-	token = None
+	
+	# TODO : check for illegal tokens
+	token = next()
 	print(inst)
 	return inst
 
 
 
-
-
-
+####################################
+## the filework
+####################################
 
 instructions = []
 with open(args.input,'r') as file:
-	instructions = Statement()
+	instructions = Program()
 
 print("instructions", instructions)
 with open(args.output,'wb') as file:
