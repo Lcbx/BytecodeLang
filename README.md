@@ -7,7 +7,7 @@ Right now the interpreter can load and interpret various instructions and should
 
 ## Where is it going ?
 
-The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dicts, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren).
+The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dicts, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (i really hate braces).
 
 Ex:
 ``` dart
