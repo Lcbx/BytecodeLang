@@ -1,9 +1,9 @@
 ## What is this ?
 
-This is a bytecode-based interpreted language that i have worked on and off since mid-2018. It is made of an interpreter VM  in c++ and a compiler in python.
-Right now the interpreter can load and interpret various instructions and should be np-complete. The compiler is not really there yet.
+This is a bytecode-based interpreted language that i have worked on and off since mid-2018. It is made of a stack-based VM  in c++ and a compiler in python.
+Right now the interpreter and compiler are at the "fancy calculator" stage.
 
-*note :*  to ensure that the bytecode is guaranteed to match between the compiler and interpreter, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/opcodes.py)) that generates a c++ header file (opcodes.h) from the compiler definitions. Though i should separate the compiler and interpreter source files one of these days for clarity.
+*note :*  to ensure that the bytecode is guaranteed to match between the compiler and interpreter, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file (opcodes.h) from the compiler definitions.
 
 ## Where is it going ?
 
