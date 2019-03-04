@@ -13,7 +13,13 @@ public:
 	const uchar* bytes;
 	Int pointer = 0;
 
-	ByteCode(uchar* s, Int length) : bytes(s), max(length) {}
+	ByteCode(uchar* s, Int length) : bytes(s), max(length) {
+		DEBUG(
+			for(int i=0; i<length; i++)
+					std::cout<< ((int) s[i]) << " ";
+				std::cout<<"\n";
+		)
+	}
 	uchar next() { return pointer<=max ? bytes[pointer++] : 0; }
 	template<typename T> T read() {
 		T result = *(T*)(bytes + pointer);
@@ -37,8 +43,6 @@ public:
 	Variable pop() { Variable var(top()); stack.pop(); return var; }
 	template<typename T> void push(T arg) { stack.emplace<Variable>(arg); }
 	
-	
-
 
 	void execute(uchar* s, Int length) {
 		ByteCode b(s, length);
@@ -152,7 +156,9 @@ public:
 			case OP_EQ: {
 				Variable a = pop();
 				Variable b = pop();
-				if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
+				if (a.type == Int_ && b.type == Int_)
+					push(a.content.asInt + b.content.asInt);
+				else if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
 					Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;
 					Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;
 					push(val_a == val_b);
@@ -169,17 +175,18 @@ public:
 				break;
 			}
 
-#define BINARY(operator, error) {		\
-		Variable b = pop();	\
-		Variable a = pop();	\
-		if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {		\
-			Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;		\
-			Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;		\
-			push(val_a operator val_b);															\
-		}						\
-		else error				\
+#define BINARY(operator, error) {	\
+		Variable b = pop();			\
+		Variable a = pop();			\
+		if (a.type == Int_ && b.type == Int_) 						\
+			push(a.content.asInt operator b.content.asInt); 		\
+		else if(a.type == Float_ && b.type == Int_)					\
+			push(a.content.asFloat operator (Float)b.content.asInt);\
+		else if(a.type == Int_ && b.type == Float_)					\
+			push((Float)a.content.asInt operator b.content.asFloat);\
+		else error													\
 		DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;)	\
-		break;					\
+		break;	\
 		}
 
 			case OP_LT: BINARY(<, push(False_);)
@@ -187,7 +194,7 @@ public:
 			case OP_GT: BINARY(>, push(False_);)
 			case OP_GTE: BINARY(>=, push(False_);)
 
-
+			case OP_SUB: BINARY(-, {})
 			case OP_MUL: BINARY(*, {})
 			case OP_DIV: BINARY(/, {})
 
@@ -231,8 +238,8 @@ public:
 				break;
 			}
 			
-			case OP_DEBUG_STACK: {
-				std::cout << "<stack> \n";
+			case OP_SHOW_STACK: {
+				std::cout << "\n<stack> \n";
 				std::stack<Variable> temp = std::stack<Variable>(stack);
 				while (!temp.empty()) {
 					std::cout << "# " << temp.top().toString() << std::endl;
@@ -252,15 +259,17 @@ public:
 };
 
 
-int main() {
-	
+int main(int argc, char* argv[]) {
 	Interpreter o;
-	//char code[] = { 0, };
-	//o.execute(code, 1);
-	o.executeFromFile("test.hex");
-	uchar c = '\026';
-	o.execute(&c, 1);
-
-	//int i;
-	//std::cin >> i;
+	if(argc==1){
+		o.executeFromFile("../tests/test.hex");
+	}
+	else if(argc == 2){
+		o.executeFromFile(argv[1]);
+	}
+	DEBUG(
+		uchar c = OP_SHOW_STACK;
+		o.execute(&c, 1);
+	)
+	return 0;
 }

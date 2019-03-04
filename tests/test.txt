@@ -1,0 +1,7 @@
+hi hello2
+hi 13. +1020
+hi 3242 # hi
+hi "great"
+hi "\"I love RocknRoll\""
+hi -8*5.
+hi 8*3/2-5*2

@@ -2,12 +2,18 @@ from opcodes import *
 import argparse
 import struct
 
+####################################
+## script operands
+####################################
+
 parser = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-parser.add_argument("-i", '--input', nargs = '?', default = "./test.txt", help='path and name of file' )
-parser.add_argument("-o", '--output', nargs = '?', default = "./test.hex", help='path and name of file' )
+parser.add_argument("-i", '--input', nargs = '?', default = "../tests/test.txt", help='path and name of file' )
+parser.add_argument("-o", '--output', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
 args = parser.parse_args()
 
-# token types enum
+####################################
+## token types enum
+####################################
 class TOKEN:
 	def __init__(self, value):
 		self.value = value
@@ -23,6 +29,8 @@ class INT(TOKEN):
 	pass
 class OP(TOKEN):
 	pass
+class EOF(TOKEN):
+	pass
 
 ####################################
 ## parsing globals and utils
@@ -30,9 +38,6 @@ class OP(TOKEN):
 
 # current line in code
 line = 0
-
-# if we reached the end of file
-EOF = False
 
 # last and current char
 last = ""
@@ -44,14 +49,11 @@ def advance():
 	global current
 	last = current
 	current = file.read(1)
-	global EOF
-	if current == "":
-		EOF = True
-	# current = "" if end of file
+	# current == "" if end of file
 
 
 ####################################
-## the the big tokenizer function
+## the big tokenizer function
 ####################################
 
 # generates 1 token at a time
@@ -75,21 +77,22 @@ def next():
 			line+=1
 			advance()
 	
+	# if its an empty string, eof
+	if current =="":
+		return EOF(None)
+
 	# operators (there can be with a = behind)
 	if current in "=!><-+/*" and current != "":
 		advance()
 		if current=="=":
 			return OP(last+current)
 		else:
-			#global stay
-			#stay = True
-			print("parser : operator, last+current is ", last+current, "line", line)
 			return OP(last)
 	
 	# name
 	if current.isalpha():
 		n = ""
-		while current.isalpha() :
+		while current.isalpha() or current.isdigit() :
 			n += current
 			advance()
 		return NAME(n)
@@ -146,97 +149,103 @@ def next():
 ####################################
 
 token = None
-def consume(Type):
+consumed = None
+# Type : 	type of token accepted
+# accepted: if exact==False : list of possible char accepted
+#			if exact==True : exact string accepted
+def consume(Type, accepted=None, exact=False):
 	global token
+	global consumed
 	if type(token) is Type:
-		value = token.value
-		token = next()
-		return value
+		if accepted==None or (not exact and token.value in accepted or
+				 				  exact and token.value == accepted):
+			#print(token)
+			consumed = token.value
+			token = next()
+			return True
 	return False
 
+
+
 def Program():
-	# eventually those things will go into parser
-	# if not, the parser thinks it's EOF
-	advance()
-	# if not, consume won't work at first
 	global token
+	# eventually those things will go into a parser class
+	# if not for this, the parser thinks it's EOF
+	advance()
+	# if not for this, consume won't work at first
 	token = next()
 	return Statement()
 
 def Statement():
-	global EOF
-	if EOF:
-		return []
-	print("statement line", line, "token is", token)
-	sys.stdout.flush()
-	name = consume(NAME)
-	if name:
-		inst_u = Addition()
-		inst_s = Statement()
-		inst_u.extend(inst_s)
-		return inst_u
-	else:
-		print("problem line", line, "got", token, "instead")
+	if consume(NAME, "hi", exact=True):
+		inst = Addition()
+		inst2 = Statement()
+		inst.extend(inst2)
+		return inst
+	return []
 
 def Addition():
-	inst_m = Multiply()
-	return inst_m
+	# might lead by a - or ! to negate number or bool
+	negate  = False
+	if consume(OP, "!-"):
+		if type(token) is INT or type(token) is FLOAT:
+			token.value *= -1
+		else:
+			negate = True
+	
+	inst = Multiply()
+	while consume(OP,"+-"):
+		op = consumed
+		inst2 = Multiply()
+		inst.extend(inst2)
+		if op == "+":
+			inst.append(OP_ADD)
+		else:
+			inst.append(OP_SUB)
+	
+	if negate:
+		inst.append(OP_NEG)
+	return inst
 
 def Multiply():
-	inst_u = Unary()
-	op = consume(OP)
-	if op:
-		if op in "*/":
-			inst_p = Primary()
-			inst_u.extend(inst_p)
-			if op == "*":
-				inst_u.append(OP_MUL)
-			if op == "/":
-				inst_u.append(OP_DIV)
-		else :
-			print("invalid operator", op, "line", line)
-	return inst_u
+	inst = Primary()
+	while consume(OP, "*/"):
+		op = consumed
+		inst2 = Primary()
+		inst.extend(inst2)
+		if op == "*":
+			inst.append(OP_MUL)
+		if op == "/":
+			inst.append(OP_DIV)
+	return inst
 
-def Unary():
-	prefix = consume(OP)
-	inst_p = Primary()
-	if prefix:
-		if prefix in "!-":
-			inst_p.append(OP_NEG)
-		else :
-			print("unknown prefix operator", prefix, "line", line)
-	return inst_p
-
-
-import sys
 
 def Primary():
 	inst = []
-	global token
 
-	print(token)
-	sys.stdout.flush()
-
-	if type(token) is FLOAT:
+	if consume(FLOAT):
 		inst.append(OP_FLOAT)
-		for b in struct.pack("f", token.value):
+		for b in struct.pack("f", consumed):
 			inst.append(b)
+		return inst
 	
-	if type(token) is INT:
+	if consume(INT):
 		inst.append(OP_INT)
-		val = token.value
-		b = [val & 255, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, val>>24 ]
+		val = consumed
+		b = [val & 255, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, (val & 0xFF000000)>>24 ]
 		inst.extend(b)
+		return inst
 	
-	if type(token) is STRING:
+	if consume(STRING):
 		inst.append(OP_STRING)
-		for c in token.value:
+		for c in consumed:
 			inst.append(ord(c))
 		inst.append(0)
+		return inst
 	
-	# TODO : check for illegal tokens
+	#print("Primary : illegal token", token, "line", line)
+	global token
 	token = next()
-	print(inst)
 	return inst
 
 

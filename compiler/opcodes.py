@@ -22,6 +22,7 @@ operations = [
 "OP_GTE",
 
 "OP_ADD",
+"OP_SUB",
 "OP_MUL",
 "OP_DIV" ,
 "OP_NEG",
@@ -30,7 +31,7 @@ operations = [
 
 
 "OP_PRINT_CHAR",
-"OP_DEBUG_STACK",
+"OP_SHOW_STACK",
 
 ]
 
@@ -42,12 +43,12 @@ for n, name in enumerate(operations):
 	cppFile += ("const uchar " + name + " = " + str(n) + ";\n")
 
 # verify if opcodes are up to date
-file = open("opcodes.h",'r')
+file = open("../vm/opcodes.h",'r')
 content = file.read()
 file.close()
 # if they aren't, changes the file content
 if content != cppFile:
-	file = open("opcodes.h",'w')
+	file = open("../vm/opcodes.h",'w')
 	file.write(cppFile)
 	file.close()
 	print("opcodes updated !")
