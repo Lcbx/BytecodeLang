@@ -157,7 +157,7 @@ public:
 				Variable a = pop();
 				Variable b = pop();
 				if (a.type == Int_ && b.type == Int_)
-					push(a.content.asInt + b.content.asInt);
+					push(a.content.asInt == b.content.asInt);
 				else if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
 					Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;
 					Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;
