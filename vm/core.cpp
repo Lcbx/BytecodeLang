@@ -143,12 +143,27 @@ public:
 			}
 			
 
+			case OP_JUMP: {
+				Short distance = code.read<Short>();
+				DEBUG(std::cout << "jump => " << code.pointer+distance << std::endl;)
+				code.pointer += distance;
+				break;
+			}
 			case OP_JUMP_IF: {
-				Variable condition = pop();
+				Variable condition = top();
+				Short distance = code.read<Short>();
+				DEBUG(std::cout << "jump if true => " << code.pointer+distance << std::endl;)
 				if (condition.type == True_) {
-					Short distance = code.read<Short>();
 					code.pointer += distance;
-					DEBUG(std::cout << "jump " << +distance << std::endl;)
+				}
+				break;
+			}
+			case OP_JUMP_IF_FALSE: {
+				Variable condition = top();
+				Short distance = code.read<Short>();
+				DEBUG(std::cout << "jump if false => " << code.pointer+distance << std::endl;)
+				if (condition.type != True_) {
+					code.pointer += distance;
 				}
 				break;
 			}

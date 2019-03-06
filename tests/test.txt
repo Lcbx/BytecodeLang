@@ -1,11 +1,8 @@
-hi hello2
-hi 13. +1020
-hi 3242 # hi
-hi "great"
-hi "\"I love RocknRoll\""
-hi -8*5.
-hi 8*3/2-5*2
-hi 5<4
-hi 17==17
-hi 5<4!=34
-hi
+hi 1012 + 12
+hi 4<6 and 45==45 and 23==32
+hi 1024
+hi 23==32 and 45==45 and 4<6
+hi 1024
+hi 3*12/4 == 3*3*1 and 34 <56
+hi 34 == 11 * 3 and "23" == 23
+hi 1024

@@ -29,6 +29,8 @@ class INT(TOKEN):
 	pass
 class OP(TOKEN):
 	pass
+class AUX(TOKEN):
+	pass
 class EOF(TOKEN):
 	pass
 
@@ -92,6 +94,10 @@ def next():
 		else:
 			op = last
 		return OP(op)
+	
+	# auxiliary
+	if current in "[]{}()":
+		return AUX(current)
 	
 	# name
 	if current.isalpha():
@@ -181,11 +187,28 @@ def Program():
 
 def Statement():
 	if consume(NAME, "hi", exact=True):
-		inst = Equality()
+		inst = Corequired()
 		inst2 = Statement()
 		inst.extend(inst2)
 		return inst
 	return []
+
+def Corequired():
+	conditions = []
+	inst = Equality()
+	total_offset = -3
+	while consume(NAME, "and", exact=True):
+		inst2 = Equality()
+		print("cond", inst2, "line", line )
+		conditions.append(inst2)
+		total_offset+= (len(inst2)+4) # 4 = OP_JUMP, short, OP_POP
+	for cond in conditions:
+		inst.append(OP_JUMP_IF_FALSE)
+		inst.extend([total_offset & 0xFF, (total_offset & 0xFF00) >> 8])
+		inst.append(OP_POP)
+		inst.extend(cond)
+		total_offset-= (len(cond)+4)
+	return inst
 
 def Equality():
 	inst = Comparison()
@@ -269,7 +292,7 @@ def Primary():
 	if consume(INT):
 		inst.append(OP_INT)
 		val = consumed
-		b = [val & 255, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, (val & 0xFF000000)>>24 ]
+		b = [val & 0xFF, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, (val & 0xFF000000)>>24 ]
 		inst.extend(b)
 		return inst
 	
