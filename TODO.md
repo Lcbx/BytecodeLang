@@ -1,9 +1,9 @@
 ### FIX :
-- None
-
+- disassembler does not support jumps
 
 #### flesh out the compiler
 - produce instructions (WIP)
+- add opcodes' stack effect in opcodes.py, that would make the dissassembler a lot easier to code
 - switch to computed goto : https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/
 - implement Nan tagging : https://github.com/wren-lang/wren/blob/master/src/vm/wren_value.h
 

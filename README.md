@@ -1,13 +1,13 @@
 ## What is this ?
 
-This is a bytecode-based interpreted language that i have worked on and off since mid-2018. It is made of a stack-based VM  in c++ and a compiler in python.
+This is a language that i have worked on and off since mid-2018. It is made of a stack-based VM in c++ and a compiler in python.
 Right now the interpreter and compiler are at the "fancy calculator" stage.
 
-*note :*  to ensure that the bytecode is guaranteed to match between the compiler and interpreter, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) from the compiler definitions.
+*note :*  to ensure that the bytecodes match between the compiler and interpreter, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) based on the compiler definitions.
 
 ## Where is it going ?
 
-The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dicts, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (i really hate braces).
+The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (i really hate braces).
 
 Ex:
 ``` CoffeeScript
@@ -20,7 +20,7 @@ class Bird
         # access to members will be made with a @, faster than "self." and readable
         return @wingspan * 40
     caw()
-        # with a 'no unecessary chatter' philosophy, print, log, input and output will be a similar to c++ cout operators
+        # 'no unecessary chatter' philosophy : print, log, input and output use << (print by default)
         << "caaaw"
 
 class Hawk(Bird)
