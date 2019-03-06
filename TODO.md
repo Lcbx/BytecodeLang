@@ -13,6 +13,7 @@
 - support classes
 
 ### technical ideas
+- test equality strictly based on type and object data. if an object is composed of other objects, check if the pointer is the same and, if it isn't, test if the object data is the same.
 - concern : we can have contiguous memory through STL in vectors and in classes, but map seems hard...
 - (?) only use dynamic allocation of arrays as hardcoded data structure, then implement maps, vectors and lists as "normal" classes that are loaded  on vm start - simpler vm and more flexible BUT that makes for a lot of homemade code and potential bugs
 - 1.5 pass : parse and identify statements in one pass,

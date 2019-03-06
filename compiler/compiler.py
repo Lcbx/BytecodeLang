@@ -49,6 +49,7 @@ def advance():
 	global current
 	last = current
 	current = file.read(1)
+	#print(current, end="")
 	# current == "" if end of file
 
 
@@ -82,12 +83,15 @@ def next():
 		return EOF(None)
 
 	# operators (there can be with a = behind)
-	if current in "=!><-+/*" and current != "":
+	if current in "=!><-+/*":
+		op = None
 		advance()
 		if current=="=":
-			return OP(last+current)
+			op = last+current
+			advance()
 		else:
-			return OP(last)
+			op = last
+		return OP(op)
 	
 	# name
 	if current.isalpha():
@@ -101,7 +105,6 @@ def next():
 	if current == "\"":
 		s = ""
 		advance()
-		
 		while current != "\"" or last == "\\" :
 			# escape character
 			if current == "\\":
@@ -178,11 +181,45 @@ def Program():
 
 def Statement():
 	if consume(NAME, "hi", exact=True):
-		inst = Addition()
+		inst = Equality()
 		inst2 = Statement()
 		inst.extend(inst2)
 		return inst
 	return []
+
+def Equality():
+	inst = Comparison()
+	if 	consume(OP, "==", exact=True) or consume(OP, "!=", True):
+		op = consumed
+		inst2 = Comparison()
+		inst.extend(inst2)
+		inst.append(OP_EQ)
+		# this will probably change very soon (why add pushes and pops when ops are free?)
+		if op == "!=":
+			inst.append(OP_NEG)
+		return inst
+	return inst
+
+def Comparison():
+	inst = Addition()
+	if consume(OP, ">", exact=True) or consume(OP, ">=", True) or consume(OP, "<", exact=True) or consume(OP, "<=", True):
+		op = consumed
+		inst2 = Addition()
+		inst.extend(inst2)
+		if op == ">":
+			inst.append(OP_GT)
+			return inst
+		if op == ">=":
+			inst.append(OP_GTE)
+			return inst
+		if op == "<":
+			inst.append(OP_LT)
+			return inst
+		if op == "<=":
+			inst.append(OP_LTE)
+			return inst
+	return inst
+
 
 def Addition():
 	# might lead by a - or ! to negate number or bool
@@ -243,8 +280,9 @@ def Primary():
 		inst.append(0)
 		return inst
 	
-	#print("Primary : illegal token", token, "line", line)
+	
 	global token
+	print("Primary : illegal token", token, "line", line)
 	token = next()
 	return inst
 
