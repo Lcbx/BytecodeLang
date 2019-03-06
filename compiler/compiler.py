@@ -282,7 +282,8 @@ def Primary():
 	
 	
 	global token
-	print("Primary : illegal token", token, "line", line)
+	if type(token) is not EOF: 
+		print("Primary : illegal token", token, "line", line)
 	token = next()
 	return inst
 
