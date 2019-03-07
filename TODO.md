@@ -5,13 +5,12 @@
 #### flesh out the compiler
 - produce instructions (WIP)
 - add opcodes' stack effect in opcodes.py, that would make the dissassembler a lot simpler
-- switch to computed goto : https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/
-- implement Nan tagging : https://github.com/wren-lang/wren/blob/master/src/vm/wren_value.h
 
 #### flesh out the language
 - support functions
 - support basic data structures
 - support classes
+- implement Nan tagging : https://github.com/wren-lang/wren/blob/master/src/vm/wren_value.h
 
 ### technical ideas
 - test equality strictly based on type and object data. if an object is composed of other objects, check if the pointer is the same and, if it isn't, test if the object data is the same.
