@@ -148,7 +148,6 @@ def next():
 		else:
 			return INT(int(n))
 	
-	# should not get here unless it's the end of file
 	print("Reached the end of parse function : type", type(current),"value", current, "length", len(current), "line", line)
 	return
 
@@ -187,19 +186,18 @@ def Program():
 
 def Statement():
 	if consume(NAME, "hi", exact=True):
-		inst = Corequired()
+		inst = AndExpression()
 		inst2 = Statement()
 		inst.extend(inst2)
 		return inst
 	return []
 
-def Corequired():
+def AndExpression():
 	conditions = []
 	inst = Equality()
 	total_offset = -3
 	while consume(NAME, "and", exact=True):
 		inst2 = Equality()
-		print("cond", inst2, "line", line )
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+4) # 4 = OP_JUMP, short, OP_POP
 	for cond in conditions:
@@ -216,10 +214,10 @@ def Equality():
 		op = consumed
 		inst2 = Comparison()
 		inst.extend(inst2)
-		inst.append(OP_EQ)
-		# this will probably change very soon (why add pushes and pops when ops are free?)
-		if op == "!=":
-			inst.append(OP_NEG)
+		if op == "==":
+			inst.append(OP_EQ)
+		else:
+			inst.append(OP_NEQ)
 		return inst
 	return inst
 
@@ -248,7 +246,7 @@ def Addition():
 	# might lead by a - or ! to negate number or bool
 	negate  = False
 	if consume(OP, "!-"):
-		if type(token) is INT or type(token) is FLOAT:
+		if consumed=="-" and( type(token) is INT or type(token) is FLOAT ):
 			token.value *= -1
 		else:
 			negate = True

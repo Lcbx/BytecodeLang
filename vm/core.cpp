@@ -189,6 +189,28 @@ public:
 				DEBUG(std::cout << a.toString() << " == " << b.toString() << " => " << top().toString() << std::endl;)
 				break;
 			}
+			
+			case OP_NEQ: {
+				Variable a = pop();
+				Variable b = pop();
+				if (a.type == Int_ && b.type == Int_)
+					push(a.content.asInt != b.content.asInt);
+				else if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
+					Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;
+					Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;
+					push(val_a != val_b);
+				}
+				else if (a.type == String_ && b.type == String_) {
+					push(a.toString() != b.toString());
+				}
+				////////////
+				// INSERT COMP OF ARRAYS AND OBJ HERE
+				////////////
+				else if (a.type != b.type) push(True_); // None == None, False == False, etc
+				else push(False_);
+				DEBUG(std::cout << a.toString() << " != " << b.toString() << " => " << top().toString() << std::endl;)
+				break;
+			}
 
 #define BINARY(operator, error) {	\
 		Variable b = pop();			\
