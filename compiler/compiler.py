@@ -183,6 +183,7 @@ def Program():
 	# if not for this, consume won't work at first
 	token = next()
 	prog = Statement()
+	#prog.append(45)
 	return prog
 
 def Statement():

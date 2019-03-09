@@ -30,7 +30,7 @@ public:
 			ret = bytes[pointer];
 		else
 			ret = OP_END;
-		DEBUG(std::cout << "OP " << pointer << " : " << +ret << std::endl;)
+		DEBUG(std::cout << "OP " << pointer << " : " << +ret << " ";)
 		pointer++;
 		return ret;
 	}
@@ -41,7 +41,7 @@ public:
 	}
 	uchar current() { return bytes[pointer-1]; }
 	uchar peek() { return bytes[pointer]; }
-	void reset() { pointer = 0; }
+	inline void reset() { pointer = 0; }
 };
 
 
@@ -56,8 +56,8 @@ public:
 	ByteCode code;
 
 	inline Variable& top() { return stack.top(); }
-	Variable pop() { Variable var(top()); stack.pop(); return var; }
-	template<typename T> void push(T arg) { stack.emplace<Variable>(arg); }
+	inline Variable pop() { Variable var(top()); stack.pop(); return var; }
+	template<typename T> inline void push(T arg) { stack.emplace<Variable>(arg); }
 	
 
 	void execute_switch();
@@ -80,44 +80,44 @@ public:
 /// the operations
 ////////////////////////////////////
 
-	void no_op() { 
+	inline void no_op() { 
 			DEBUG(std::cout << "NOOP " << std::endl;)
 		}
 
-	void op_none(){
+	inline void op_none(){
 		push( None_ );
 		DEBUG(std::cout << "none " << std::endl;)
 	}
 
-	void op_true(){
+	inline void op_true(){
 		push( True_ );
 		DEBUG(std::cout << "true " << std::endl;)
 	}
 
-	void op_false(){
+	inline void op_false(){
 		push( False_ );
 		DEBUG(std::cout << "false " << std::endl;)
 	}
 
-	void op_int1(){
+	inline void op_int1(){
 		push((Int)code.read<char>());
-		DEBUG(std::cout << "int " << top().toString() << std::endl;)
+		DEBUG(std::cout << "int1 " << top().toString() << std::endl;)
 	}
-	void op_int2(){
+	inline void op_int2(){
 		push((Int)code.read<Short>());
-		DEBUG(std::cout << "int " << top().toString() << std::endl;)
+		DEBUG(std::cout << "int2 " << top().toString() << std::endl;)
 	}
-	void op_int4(){
+	inline void op_int4(){
 		push(code.read<Int>());
-		DEBUG(std::cout << "int " << top().toString() << std::endl;)
+		DEBUG(std::cout << "int4 " << top().toString() << std::endl;)
 	}
 	
-	void op_float(){
+	inline void op_float(){
 		push(code.read<Float>());
 		DEBUG(std::cout << "float " << top().toString() << std::endl;)
 	}
 	
-	void op_string(){
+	inline void op_string(){
 		String* s = new String();
 		DEBUG(std::cout << "string ";)
 		for (char c = code.next(); c != 0; c = code.next()) {
@@ -129,7 +129,7 @@ public:
 	}
 
 	
-	void op_load(){
+	inline void op_load(){
 		uchar address = code.read<uchar>();
 		Variable var = registers[address];
 		// compiler says no copy construction #WorkAroundFTW
@@ -138,25 +138,25 @@ public:
 		DEBUG(std::cout << "LOAD " << +address << " : " << var.toString() << std::endl;)
 	}
 
-	void op_store(){
+	inline void op_store(){
 		uchar address = code.read<uchar>();
 		Variable var = pop();
 		registers[address] = var;
 		DEBUG(std::cout << "STORE " << +address << " : " << var.toString() << std::endl;)
 	}
 
-	void op_pop(){
+	inline void op_pop(){
 		pop();
 		DEBUG(std::cout << "POP" << std::endl;)
 	}
 	
 
-	void op_jump(){
+	inline void op_jump(){
 		Short distance = code.read<Short>();
 		DEBUG(std::cout << "jump => " << code.pointer+distance << std::endl;)
 		code.pointer += distance;
 	}
-	void op_jump_if(){
+	inline void op_jump_if(){
 		Variable condition = top();
 		Short distance = code.read<Short>();
 		DEBUG(std::cout << "jump if true => " << code.pointer+distance << std::endl;)
@@ -164,7 +164,7 @@ public:
 			code.pointer += distance;
 		}
 	}
-	void op_jump_if_false(){
+	inline void op_jump_if_false(){
 		Variable condition = top();
 		Short distance = code.read<Short>();
 		DEBUG(std::cout << "jump if false => " << code.pointer+distance << std::endl;)
@@ -172,72 +172,43 @@ public:
 			code.pointer += distance;
 		}
 	}
-
-	void op_eq(){
-		Variable a = pop();
-		Variable b = pop();
-		if (a.type == Int_ && b.type == Int_)
-			push(a.content.asInt == b.content.asInt);
-		else if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
-			Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;
-			Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;
-			push(val_a == val_b);
-		}
-		else if (a.type == String_ && b.type == String_) {
-			push(a.toString() == b.toString());
-		}
-		////////////
-		// INSERT COMP OF ARRAYS AND OBJ HERE
-		////////////
-		else if (a.type == b.type) push(True_); // None == None, False == False, etc
-		else push(False_);
-		DEBUG(std::cout << a.toString() << " == " << b.toString() << " => " << top().toString() << std::endl;)
-	}
-	
-	void op_neq(){
-		Variable a = pop();
-		Variable b = pop();
-		if (a.type == Int_ && b.type == Int_)
-			push(a.content.asInt != b.content.asInt);
-		else if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
-			Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;
-			Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;
-			push(val_a != val_b);
-		}
-		else if (a.type == String_ && b.type == String_) {
-			push(a.toString() != b.toString());
-		}
-		////////////
-		// INSERT COMP OF ARRAYS AND OBJ HERE
-		////////////
-		else if (a.type != b.type) push(True_); // None == None, False == False, etc
-		else push(False_);
-		DEBUG(std::cout << a.toString() << " != " << b.toString() << " => " << top().toString() << std::endl;)
-	}
-
-#define BINARY(operator, error) {	\
-Variable b = pop();			\
-Variable a = pop();			\
+#define BINARY_IMPL(operator) \
+Variable b = pop();					\
+Variable a = pop();					\
 if (a.type == Int_ && b.type == Int_) 						\
 	push(a.content.asInt operator b.content.asInt); 		\
 else if(a.type == Float_ && b.type == Int_)					\
 	push(a.content.asFloat operator (Float)b.content.asInt);\
 else if(a.type == Int_ && b.type == Float_)					\
 	push((Float)a.content.asInt operator b.content.asFloat);\
-else error													\
-DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;)	\
+
+#define BINARY(operator, other) {	\
+BINARY_IMPL(operator)				\
+else other							\
+DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
 }
 
-	void op_lt()  BINARY(<, push(False_);)
-	void op_lte() BINARY(<=, push(False_);)
-	void op_gt()  BINARY(>, push(False_);)
-	void op_gte() BINARY(>=, push(False_);)
+#define EQ_TEST(operator) { 	\
+BINARY_IMPL(operator) 			\
+else if (a.type == String_ && b.type == String_) 	\
+	push(a.toString() operator b.toString());	\
+else push(a.type operator b.type); 				\
+DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
+}
+	
+	inline void op_eq() EQ_TEST(==)
+	inline void op_neq() EQ_TEST(!=)
 
-	void op_sub() BINARY(-, {})
-	void op_mul() BINARY(*, {})
-	void op_div() BINARY(/, {})
+	inline void op_lt()  BINARY(<, push(False_);)
+	inline void op_lte() BINARY(<=, push(False_);)
+	inline void op_gt()  BINARY(>, push(False_);)
+	inline void op_gte() BINARY(>=, push(False_);)
 
-	void op_add(){
+	inline void op_sub() BINARY(-, {})
+	inline void op_mul() BINARY(*, {})
+	inline void op_div() BINARY(/, {})
+
+	inline void op_add(){
 		Variable a = pop();
 		Variable b = pop();
 		if (a.type == Int_ && b.type == Int_) push(a.content.asInt + b.content.asInt);
@@ -253,7 +224,7 @@ DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().
 		DEBUG(std::cout << a.toString() << " ADD " << b.toString() << " => " << top().toString() << std::endl;)
 	}
 	
-	void op_neg(){
+	inline void op_neg(){
 		Variable var = pop();
 		if (var.type == Int_) push(-var.content.asInt);
 		else if (var.type == Float_) push(-var.content.asFloat);
@@ -263,17 +234,17 @@ DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().
 	}
 	
 
-	void op_print(){
+	inline void op_print(){
 		std::cout << top().toString();
 		DEBUG(std::cout << " asInt " << top().content.asInt << std::endl;)
 	}
 
-	void op_print_char(){
+	inline void op_print_char(){
 		uchar* temp = (uchar*) &top().content.asInt;
 		DEBUG(std::cout << "print " << +temp[0] << " " << +temp[1] << " " << +temp[2] << " " << +temp[3] << std::endl;)
 	}
 	
-	void op_show_stack(){
+	inline void op_show_stack(){
 		std::cout << "\n<stack> \n";
 		std::stack<Variable> temp = std::stack<Variable>(stack);
 		while (!temp.empty()) {
@@ -282,7 +253,7 @@ DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().
 		}
 	}
 
-	void op_end(){
+	inline void op_end(){
 		DEBUG(std::cout << "END" << std::endl;)
 	}
 };
