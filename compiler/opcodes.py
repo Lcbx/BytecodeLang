@@ -5,7 +5,9 @@ operations = [
 "OP_NONE",
 "OP_TRUE",
 "OP_FALSE",
-"OP_INT",
+"OP_INT1", #-128@127
+"OP_INT2", #-65536@65535
+"OP_INT4", #MININT@MAXINT
 "OP_FLOAT",
 "OP_STRING",
 
@@ -72,7 +74,7 @@ if __name__ == "__main__":
 """
 	# generates the computed goto in cpp for the virtual machine
 	# first part : header and declaration of labels
-	goto_cpp = """
+	label_cpp = """
 #include "common.h"
 #include "core.h"
 
@@ -91,7 +93,7 @@ void Interpreter::execute_switch(){
 		# opcode declaration
 		opcodes_cpp += ("const uchar " + name + " = " + str(n) + ";\n")
 		# label declaration
-		goto_cpp += ("&&"+ name + "_LABEL, ")
+		label_cpp += ("&&"+ name + "_LABEL, ")
 		# label and function call
 		switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "(); DISPATCH()\n")
 	
@@ -99,15 +101,15 @@ void Interpreter::execute_switch(){
 	# OP_END
 	name = operations[-1]
 	opcodes_cpp += ("const uchar " + name + " = " + str(len(operations)-1) + ";\n")
-	goto_cpp += ("&&"+ name + "_LABEL, ")
+	label_cpp += ("&&"+ name + "_LABEL, ")
 	switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "();\n")
 
 	# end those puny braces
-	goto_cpp += "};"
+	label_cpp += "};"
 	switch_cpp += "\t}\n}"
 
 	verifyAndReplace(VM_OPCODES_FILE, opcodes_cpp)
-	verifyAndReplace(VM_SWITCH_FILE, goto_cpp+switch_cpp)
+	verifyAndReplace(VM_SWITCH_FILE, label_cpp+switch_cpp)
 
 	
 	

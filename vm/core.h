@@ -99,7 +99,15 @@ public:
 		DEBUG(std::cout << "false " << std::endl;)
 	}
 
-	void op_int(){
+	void op_int1(){
+		push((Int)code.read<char>());
+		DEBUG(std::cout << "int " << top().toString() << std::endl;)
+	}
+	void op_int2(){
+		push((Int)code.read<Short>());
+		DEBUG(std::cout << "int " << top().toString() << std::endl;)
+	}
+	void op_int4(){
 		push(code.read<Int>());
 		DEBUG(std::cout << "int " << top().toString() << std::endl;)
 	}

@@ -83,6 +83,10 @@ def next():
 	# if its an empty string, eof
 	if current =="":
 		return EOF(None)
+	
+	# auxiliary
+	if current in "\t[]{}()":
+		return AUX(current)
 
 	# operators (there can be with a = behind)
 	if current in "=!><-+/*":
@@ -94,10 +98,6 @@ def next():
 		else:
 			op = last
 		return OP(op)
-	
-	# auxiliary
-	if current in "[]{}()":
-		return AUX(current)
 	
 	# name
 	if current.isalpha():
@@ -182,30 +182,49 @@ def Program():
 	advance()
 	# if not for this, consume won't work at first
 	token = next()
-	return Statement()
+	prog = Statement()
+	return prog
 
 def Statement():
 	if consume(NAME, "hi", exact=True):
-		inst = AndExpression()
+		inst = OrExpression()
 		inst2 = Statement()
 		inst.extend(inst2)
 		return inst
 	return []
 
+def OrExpression():
+	conditions = []
+	inst = AndExpression()
+	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
+	total_offset = 1 - OVERHEAD
+	while consume(NAME, "or", exact=True):
+		inst2 = AndExpression()
+		conditions.append(inst2)
+		total_offset+= (len(inst2)+ OVERHEAD)
+	for cond in conditions:
+		inst.append(OP_JUMP_IF)
+		inst.extend([total_offset & 0xFF, (total_offset & 0xFF00) >> 8])
+		inst.append(OP_POP)
+		inst.extend(cond)
+		total_offset-= (len(cond)+ OVERHEAD)
+	return inst
+
 def AndExpression():
 	conditions = []
 	inst = Equality()
-	total_offset = -3
+	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
+	total_offset = 1 - OVERHEAD
 	while consume(NAME, "and", exact=True):
 		inst2 = Equality()
 		conditions.append(inst2)
-		total_offset+= (len(inst2)+4) # 4 = OP_JUMP, short, OP_POP
+		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
 		inst.append(OP_JUMP_IF_FALSE)
 		inst.extend([total_offset & 0xFF, (total_offset & 0xFF00) >> 8])
 		inst.append(OP_POP)
 		inst.extend(cond)
-		total_offset-= (len(cond)+4)
+		total_offset-= (len(cond)+ OVERHEAD)
 	return inst
 
 def Equality():
@@ -288,9 +307,17 @@ def Primary():
 		return inst
 	
 	if consume(INT):
-		inst.append(OP_INT)
 		val = consumed
-		b = [val & 0xFF, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, (val & 0xFF000000)>>24 ]
+		if val>=-128 and val<128:
+			b = [val & 0xFF]
+			inst.append(OP_INT1)
+		else:
+			if val>=-128 * 256 and val<128 * 256:
+				b = [val & 0xFF, (val & 0xFF00) >> 8]
+				inst.append(OP_INT2)
+			else:
+				b = [val & 0xFF, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, (val & 0xFF000000)>>24 ]
+				inst.append(OP_INT4)
 		inst.extend(b)
 		return inst
 	
