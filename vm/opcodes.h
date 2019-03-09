@@ -30,3 +30,4 @@ const uchar OP_NEG = 23;
 const uchar OP_PRINT = 24;
 const uchar OP_PRINT_CHAR = 25;
 const uchar OP_SHOW_STACK = 26;
+const uchar OP_END = 27;

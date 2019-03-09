@@ -5,29 +5,34 @@
 #include "opcodes.h"
 #include "Value.cpp"
 
-
+////////////////////////////////////
+/// the instruction container
+////////////////////////////////////
 class ByteCode {
 public:
 
-	Int max = 0;
+	Int size = 0;
 	uchar* bytes;
 	Int pointer = 0;
-	bool ended = false;
 	ByteCode(){}
-	ByteCode(uchar* s, Int length) : bytes(s), max(length) {
+	ByteCode(uchar* data, Int length) : bytes(data), size(length) {
 		DEBUG(
-			for(int i=0; i<length; i++)
-					std::cout<< ((int) s[i]) << " ";
+			std::cout<< "size " << size << "\n";
+			for(int i=0; i<size; i++)
+					std::cout<< (+data[i]) << " ";
 				std::cout<<"\n";
 		)
 	}
+
 	uchar next() {
-		if(pointer<max)
-			return bytes[pointer++];
-		else {
-			ended = true;
-			return 0;
-		}
+		uchar ret;
+		if(pointer<size)
+			ret = bytes[pointer];
+		else
+			ret = OP_END;
+		DEBUG(std::cout << "OP " << pointer << " : " << +ret << std::endl;)
+		pointer++;
+		return ret;
 	}
 	template<typename T> T read() {
 		T result = *(T*)(bytes + pointer);
@@ -37,11 +42,12 @@ public:
 	uchar current() { return bytes[pointer-1]; }
 	uchar peek() { return bytes[pointer]; }
 	void reset() { pointer = 0; }
-	void jump(Int i) { pointer += i; }
 };
 
 
-
+////////////////////////////////////
+/// the virtual machine
+////////////////////////////////////
 class Interpreter {
 public:
 	std::stack<Variable> stack;
@@ -56,19 +62,23 @@ public:
 
 	void execute_switch();
 
-	void execute(uchar* s, Int length) {
-		code = ByteCode(s, length);
+	void execute(ByteCode b) {
+		code = b;
 		execute_switch();
 	}
-
-	void executeFromFile(String fileName) {
+	void execute(String fileName) {
 		std::ifstream in(fileName, std::ios::binary);
 		std::vector<uchar> buffer((
 			std::istreambuf_iterator<char>(in)),
 			(std::istreambuf_iterator<char>()));
 		buffer.shrink_to_fit();
-		execute(buffer.data(), buffer.size());
+		ByteCode b = ByteCode(buffer.data(), buffer.size());
+		execute(b);
 	}
+
+////////////////////////////////////
+/// the operations
+////////////////////////////////////
 
 	void no_op() { 
 			DEBUG(std::cout << "NOOP " << std::endl;)
@@ -263,20 +273,24 @@ DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().
 			temp.pop();
 		}
 	}
+
+	void op_end(){
+		DEBUG(std::cout << "END" << std::endl;)
+	}
 };
 
 
 int main(int argc, char* argv[]) {
-	Interpreter o;
+	Interpreter i;
 	if(argc==1){
-		o.executeFromFile("../tests/test.hex");
+		i.execute("../tests/test.hex");
 	}
 	else if(argc == 2){
-		o.executeFromFile(argv[1]);
+		i.execute(argv[1]);
 	}
 	DEBUG(
 		uchar c = OP_SHOW_STACK;
-		o.execute(&c, 1);
+		i.execute(ByteCode(&c, 1));
 	)
 	return 0;
 }

@@ -36,6 +36,8 @@ operations = [
 
 "OP_PRINT_CHAR",
 "OP_SHOW_STACK",
+
+"OP_END",
 ]
 
 for n, name in enumerate(operations):
@@ -76,25 +78,33 @@ if __name__ == "__main__":
 
 // generated file, see opcodes.py
 void Interpreter::execute_switch(){
+	DEBUG(std::cout << "in execute\\n";)
 	static const void* labels[] = {"""
 	# the switch with all labels and calls to functions
 	switch_cpp = """
 	uchar opcode = 0;
-	#define DISPATCH() opcode = code.next(); if(!code.ended){ goto *labels[opcode];} else return;
-	#define PRINT_OP() DEBUG(std::cout << "OP " << code.pointer << " : " << +code.current() << "   ";)
+	#define DISPATCH() opcode = code.next(); goto *labels[opcode];
 	DISPATCH()
-	while(1){
+	while(false){
 """
-	for n, name in enumerate(operations):
+	for n, name in enumerate(operations[:-1]):
 		# opcode declaration
 		opcodes_cpp += ("const uchar " + name + " = " + str(n) + ";\n")
 		# label declaration
 		goto_cpp += ("&&"+ name + "_LABEL, ")
 		# label and function call
-		switch_cpp += ("\t\t" + name + "_LABEL: PRINT_OP() " + name.lower() + "(); DISPATCH()\n""")
+		switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "(); DISPATCH()\n")
+	
+
+	# OP_END
+	name = operations[-1]
+	opcodes_cpp += ("const uchar " + name + " = " + str(len(operations)-1) + ";\n")
+	goto_cpp += ("&&"+ name + "_LABEL, ")
+	switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "();\n")
+
 	# end those puny braces
 	goto_cpp += "};"
-	switch_cpp += "}}"
+	switch_cpp += "\t}\n}"
 
 	verifyAndReplace(VM_OPCODES_FILE, opcodes_cpp)
 	verifyAndReplace(VM_SWITCH_FILE, goto_cpp+switch_cpp)
