@@ -3,7 +3,7 @@
 This is a language that i have worked on and off since mid-2018. It is made of a stack-based VM in c++ and a compiler in python.
 Right now the interpreter and compiler are at the "fancy calculator" stage.
 
-*note :*  to ensure that the bytecodes match between the compiler and interpreter, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) based on the compiler definitions.
+*note :*  to ensure that the bytecodes match between the compiler and interpreter, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) based on the compiler definitions. In fact now it also generates the dispatch table for the interpreter using computed gotos ([core.cpp](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp)).
 
 ## Where is it going ?
 
