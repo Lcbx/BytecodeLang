@@ -1,5 +1,5 @@
 from opcodes import *
-
+import struct
 
 opcodes = {}
 for n, item in enumerate(operations):
@@ -11,14 +11,12 @@ parser.add_argument("-i", '--input', nargs = '?', default = "../tests/test.hex",
 args = parser.parse_args()
 
 
-with open(args.input,'r') as file:
-	print("NOTE: opcode 13 appears as 10 because of some stupid byte-encoding reasons")
+with open(args.input,'rb') as file:
 	content = file.read()
-	content = bytes(content, "utf-8")
 	i=0
 	while i<len(content):
 		opcode = content[i]
-		print("opcode :", opcode, end="\t")
+		print(i, ":", end="\t")
 		val = ""
 		if opcode == OP_STRING:
 				i+=1

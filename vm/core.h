@@ -37,7 +37,7 @@ public:
 		}
 		else
 			ret = OP_END;
-		DEBUG(std::cout << "OP " << pointer << " : " << +ret << " ";)
+		DEBUG(std::cout << pointer << "\t: " << +ret << "\t";)
 		pointer++;
 		return ret;
 	}
