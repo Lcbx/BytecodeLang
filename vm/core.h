@@ -127,7 +127,7 @@ public:
 	inline void op_string(){
 		String* s = new String();
 		DEBUG(std::cout << "string ";)
-		for (char c = code.next(); c != 0; c = code.next()) {
+		for (char c = code.read<uchar>(); c != 0; c = code.read<uchar>()) {
 			*s += c;
 			DEBUG(std::cout << c << std::flush;)
 		}
@@ -195,41 +195,26 @@ else other							\
 DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
 }
 
-#define EQ_TEST(operator) { 	\
-BINARY_IMPL(operator) 			\
-else if (a.type == String_ && b.type == String_) 	\
+#define BINARY_EXTENDED(operator) 				\
+BINARY(operator, 								\
+if (a.type == String_ && b.type == String_) 	\
 	push(a.toString() operator b.toString());	\
-else push(a.type operator b.type); 				\
-DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
-}
+else push(a.type operator b.type);				\
+)
 	
-	inline void op_eq() EQ_TEST(==)
-	inline void op_neq() EQ_TEST(!=)
+	inline void op_eq() BINARY_EXTENDED(==)
+	inline void op_neq() BINARY_EXTENDED(!=)
 
-	inline void op_lt()  BINARY(<, push(False_);)
-	inline void op_lte() BINARY(<=, push(False_);)
-	inline void op_gt()  BINARY(>, push(False_);)
-	inline void op_gte() BINARY(>=, push(False_);)
+	inline void op_lt()  BINARY_EXTENDED(<)
+	inline void op_lte() BINARY_EXTENDED(<=)
+	inline void op_gt()  BINARY_EXTENDED(>)
+	inline void op_gte() BINARY_EXTENDED(>=)
 
 	inline void op_sub() BINARY(-, {})
 	inline void op_mul() BINARY(*, {})
 	inline void op_div() BINARY(/, {})
 
-	inline void op_add(){
-		Variable a = pop();
-		Variable b = pop();
-		if (a.type == Int_ && b.type == Int_) push(a.content.asInt + b.content.asInt);
-		else if ((a.type == Float_ || a.type == Int_) && (b.type == Float_ || b.type == Int_)) {
-			Float val_a = a.type == Float_ ? a.content.asFloat : (Float)a.content.asInt;
-			Float val_b = b.type == Float_ ? b.content.asFloat : (Float)b.content.asInt;
-			push(val_a + val_b);
-		}
-		else {
-			// might be better to check type for error
-			push(a.toString() + b.toString());
-		}
-		DEBUG(std::cout << a.toString() << " ADD " << b.toString() << " => " << top().toString() << std::endl;)
-	}
+	inline void op_add() BINARY_EXTENDED(+)
 	
 	inline void op_neg(){
 		Variable var = pop();
