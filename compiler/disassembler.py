@@ -2,8 +2,8 @@ from opcodes import *
 import struct
 
 opcodes = {}
-for n, item in enumerate(operations):
-	opcodes[n] = item
+for n, op in enumerate(operations):
+	opcodes[n] = op
 
 import argparse
 parser = argparse.ArgumentParser(description='homemade disassembler for project scripting language')
@@ -20,13 +20,15 @@ with open(args.input,'rb') as file:
 		val = ""
 		if opcode == OP_STRING:
 				i+=1
-				c = chr(content[i])
-				while c!= chr(0) and  c != "":
+				c = content[i]
+				while c!= 0 and  c != None:
+					val+= chr(content[i])
 					i+=1
-					c = chr(content[i])
+					c = content[i]
+				i+=1
 		else:
-			for j in range(opcodes[opcode][1]):
+			for j in range(opcodes[opcode].bytesConsumed):
 				i+=1
 				val += (str(content[i]) + " ")
 			i+=1
-		print(opcodes[opcode][0], val)
+		print(opcodes[opcode].name, val)

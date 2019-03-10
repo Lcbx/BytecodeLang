@@ -175,6 +175,7 @@ def consume(Type, accepted=None, exact=False):
 
 
 
+
 def Program():
 	global token
 	# eventually those things will go into a parser class

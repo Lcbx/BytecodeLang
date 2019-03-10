@@ -1,47 +1,51 @@
-# (op_name, bytes_taken)
+from collections import namedtuple
+
+
+OP = namedtuple("OP", "name bytesConsumed")
+
 operations = [
 
-("NO_OP",    0),
+OP("NO_OP",    0),
 
-("OP_NONE",  0),
-("OP_TRUE",  0),
-("OP_FALSE", 0),
-("OP_INT1",  1), #-128@127
-("OP_INT2",  2), #-65536@65535
-("OP_INT4",  4), #MININT@MAXINT
-("OP_FLOAT", 4),
-("OP_STRING", None),
+OP("OP_NONE",  0),
+OP("OP_TRUE",  0),
+OP("OP_FALSE", 0),
+OP("OP_INT1",  1), #-128@127
+OP("OP_INT2",  2), #-65536@65535
+OP("OP_INT4",  4), #MININT@MAXINT
+OP("OP_FLOAT", 4),
+OP("OP_STRING", None),
 
-("OP_LOAD",  1),
-("OP_STORE", 1),
-("OP_POP",   0),
+OP("OP_LOAD",  1),
+OP("OP_STORE", 1),
+OP("OP_POP",   0),
 
-("OP_JUMP", 2),
-("OP_JUMP_IF", 2),
-("OP_JUMP_IF_FALSE", 2),
+OP("OP_JUMP", 2),
+OP("OP_JUMP_IF", 2),
+OP("OP_JUMP_IF_FALSE", 2),
 
-("OP_EQ",  0),
-("OP_NEQ", 0),
-("OP_LT",  0),
-("OP_LTE", 0),
-("OP_GT",  0),
-("OP_GTE", 0),
+OP("OP_EQ",  0),
+OP("OP_NEQ", 0),
+OP("OP_LT",  0),
+OP("OP_LTE", 0),
+OP("OP_GT",  0),
+OP("OP_GTE", 0),
 
-("OP_ADD", 0),
-("OP_SUB", 0),
-("OP_MUL", 0),
-("OP_DIV", 0),
-("OP_NEG", 0),
+OP("OP_ADD", 0),
+OP("OP_SUB", 0),
+OP("OP_MUL", 0),
+OP("OP_DIV", 0),
+OP("OP_NEG", 0),
 
-("OP_PRINT", 0),
+OP("OP_PRINT", 0),
 
-("OP_SHOW_STACK", 0),
-("OP_END", 0),
+OP("OP_SHOW_STACK", 0),
+OP("OP_END", 0),
 ]
 
-for n, name in enumerate(map(lambda _:_[0], operations)):
+for n, op in enumerate(operations):
 	# declares opcodes in python
-	exec( name + " = " + str(n) )
+	exec( op.name + " = " + str(n) )
 
 
 def verifyAndReplace(filename, expected):
@@ -86,17 +90,17 @@ void Interpreter::execute_switch(){
 	DISPATCH()
 	while(false){
 """
-	for n, name in enumerate(map(lambda _:_[0], operations[:-1])):
+	for n, op in enumerate(operations[:-1]):
 		# opcode declaration
-		opcodes_cpp += ("const uchar " + name + " = " + str(n) + ";\n")
+		opcodes_cpp += ("const uchar " + op.name + " = " + str(n) + ";\n")
 		# label declaration
-		label_cpp += ("&&"+ name + "_LABEL, ")
+		label_cpp += ("&&"+ op.name + "_LABEL, ")
 		# label and function call
-		switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "(); DISPATCH()\n")
+		switch_cpp += ("\t\t" + op.name + "_LABEL: " + op.name.lower() + "(); DISPATCH()\n")
 	
 
 	# OP_END
-	name = operations[-1][0]
+	name = operations[-1].name
 	opcodes_cpp += ("const uchar " + name + " = " + str(len(operations)-1) + ";\n")
 	label_cpp += ("&&"+ name + "_LABEL, ")
 	switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "();\n")
