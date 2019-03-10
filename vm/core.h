@@ -26,8 +26,15 @@ public:
 
 	uchar next() {
 		uchar ret;
-		if(pointer<size)
+		if(pointer<size){
 			ret = bytes[pointer];
+			DEBUG(
+				if (ret>OP_END){
+					std::cout << "Error " << pointer << " : " << +ret << " is not known opcode\n";
+					return OP_END;
+				}
+			)
+		}
 		else
 			ret = OP_END;
 		DEBUG(std::cout << "OP " << pointer << " : " << +ret << " ";)
@@ -237,11 +244,6 @@ DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().
 	inline void op_print(){
 		std::cout << top().toString();
 		DEBUG(std::cout << " asInt " << top().content.asInt << std::endl;)
-	}
-
-	inline void op_print_char(){
-		uchar* temp = (uchar*) &top().content.asInt;
-		DEBUG(std::cout << "print " << +temp[0] << " " << +temp[1] << " " << +temp[2] << " " << +temp[3] << std::endl;)
 	}
 	
 	inline void op_show_stack(){

@@ -1,48 +1,45 @@
+# (op_name, bytes_taken)
 operations = [
 
-"NO_OP",
+("NO_OP",    0),
 
-"OP_NONE",
-"OP_TRUE",
-"OP_FALSE",
-"OP_INT1", #-128@127
-"OP_INT2", #-65536@65535
-"OP_INT4", #MININT@MAXINT
-"OP_FLOAT",
-"OP_STRING",
+("OP_NONE",  0),
+("OP_TRUE",  0),
+("OP_FALSE", 0),
+("OP_INT1",  1), #-128@127
+("OP_INT2",  2), #-65536@65535
+("OP_INT4",  4), #MININT@MAXINT
+("OP_FLOAT", 4),
+("OP_STRING", None),
 
-"OP_LOAD",
-"OP_STORE",
-"OP_POP",
-#"OP_COPY",
+("OP_LOAD",  1),
+("OP_STORE", 1),
+("OP_POP",   0),
 
-"OP_JUMP",
-"OP_JUMP_IF",
-"OP_JUMP_IF_FALSE",
+("OP_JUMP", 2),
+("OP_JUMP_IF", 2),
+("OP_JUMP_IF_FALSE", 2),
 
-"OP_EQ",
-"OP_NEQ",
-"OP_LT",
-"OP_LTE",
-"OP_GT",
-"OP_GTE",
+("OP_EQ",  0),
+("OP_NEQ", 0),
+("OP_LT",  0),
+("OP_LTE", 0),
+("OP_GT",  0),
+("OP_GTE", 0),
 
-"OP_ADD",
-"OP_SUB",
-"OP_MUL",
-"OP_DIV" ,
-"OP_NEG",
+("OP_ADD", 0),
+("OP_SUB", 0),
+("OP_MUL", 0),
+("OP_DIV", 0),
+("OP_NEG", 0),
 
-"OP_PRINT",
+("OP_PRINT", 0),
 
-
-"OP_PRINT_CHAR",
-"OP_SHOW_STACK",
-
-"OP_END",
+("OP_SHOW_STACK", 0),
+("OP_END", 0),
 ]
 
-for n, name in enumerate(operations):
+for n, name in enumerate(map(lambda _:_[0], operations)):
 	# declares opcodes in python
 	exec( name + " = " + str(n) )
 
@@ -89,7 +86,7 @@ void Interpreter::execute_switch(){
 	DISPATCH()
 	while(false){
 """
-	for n, name in enumerate(operations[:-1]):
+	for n, name in enumerate(map(lambda _:_[0], operations[:-1])):
 		# opcode declaration
 		opcodes_cpp += ("const uchar " + name + " = " + str(n) + ";\n")
 		# label declaration
@@ -99,7 +96,7 @@ void Interpreter::execute_switch(){
 	
 
 	# OP_END
-	name = operations[-1]
+	name = operations[-1][0]
 	opcodes_cpp += ("const uchar " + name + " = " + str(len(operations)-1) + ";\n")
 	label_cpp += ("&&"+ name + "_LABEL, ")
 	switch_cpp += ("\t\t" + name + "_LABEL: " + name.lower() + "();\n")
