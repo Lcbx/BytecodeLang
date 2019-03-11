@@ -71,7 +71,7 @@ def next():
 
 		# comments
 		if current == "#":
-			while current!="\n" :
+			while current not in "\n" :
 				advance()
 		
 		# endline
@@ -86,7 +86,9 @@ def next():
 	
 	# auxiliary
 	if current in "\t[]{}()":
-		return AUX(current)
+		aux = current
+		advance()
+		return AUX(aux)
 
 	# operators (there can be with a = behind)
 	if current in "=!><-+/*":
@@ -172,7 +174,6 @@ def consume(Type, accepted=None, exact=False):
 			token = next()
 			return True
 	return False
-
 
 
 
@@ -300,6 +301,7 @@ def Multiply():
 
 
 def Primary():
+	global token
 	inst = []
 
 	if consume(FLOAT):
@@ -311,14 +313,14 @@ def Primary():
 	if consume(INT):
 		val = consumed
 		if val>=-128 and val<128:
-			b = [val & 0xFF]
+			b = struct.pack("b", val)
 			inst.append(OP_INT1)
 		else:
 			if val>=-128 * 256 and val<128 * 256:
-				b = [val & 0xFF, (val & 0xFF00) >> 8]
+				b = struct.pack("h", val)
 				inst.append(OP_INT2)
 			else:
-				b = [val & 0xFF, (val & 0xFF00) >> 8, (val & 0xFF0000)>>16, (val & 0xFF000000)>>24 ]
+				b = struct.pack("i", val)
 				inst.append(OP_INT4)
 		inst.extend(b)
 		return inst
@@ -329,9 +331,14 @@ def Primary():
 			inst.append(ord(c))
 		inst.append(0)
 		return inst
+
+	print("hello")
+	if consume(AUX, "("):
+		inst = OrExpression()
+		if not consume(AUX, ")"):
+			print("Primary : expecting closing ) line", line)
+		return inst
 	
-	
-	global token
 	if type(token) is not EOF: 
 		print("Primary : illegal token", token, "line", line)
 	token = next()

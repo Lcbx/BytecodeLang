@@ -58,8 +58,8 @@ public:
 class Interpreter {
 public:
 	std::stack<Variable> stack;
-	std::deque<Variable> registers;
-	Interpreter() : registers(0) {} //max 256
+	std::vector<Variable> registers;
+	Interpreter() : registers(256) {}
 	ByteCode code;
 
 	inline Variable& top() { return stack.top(); }

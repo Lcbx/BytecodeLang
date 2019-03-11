@@ -12,10 +12,12 @@ args = parser.parse_args()
 
 
 with open(args.input,'rb') as file:
+	#print("NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.")
 	content = file.read()
 	i=0
 	while i<len(content):
 		opcode = content[i]
+		opName = opcodes[opcode].name
 		print(i, ":", end="\t")
 		val = ""
 		if opcode == OP_STRING:
@@ -27,8 +29,19 @@ with open(args.input,'rb') as file:
 					c = content[i]
 				i+=1
 		else:
-			for j in range(opcodes[opcode].bytesConsumed):
-				i+=1
-				val += (str(content[i]) + " ")
 			i+=1
-		print(opcodes[opcode].name, val)
+			bytesConsumed = opcodes[opcode].bytesConsumed
+			fmt = None
+			if bytesConsumed != 0:
+				if bytesConsumed == 1:
+					fmt = "b"
+				elif bytesConsumed == 2:
+					fmt="h"
+				elif bytesConsumed == 4:
+					fmt = "i"
+				else:
+					print("unknown number of bytes consumed :", bytesConsumed, " for op ", opName )
+				val += str(struct.unpack(fmt, content[i:i+bytesConsumed])[0])
+				i += bytesConsumed
+			
+		print(opName, val)
