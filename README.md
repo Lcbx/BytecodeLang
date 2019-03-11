@@ -1,5 +1,4 @@
 ## What's this ?
-
 BytecodeLang (name is temporary) is a language i've been working on and off since mid-2018.  
 It consists of a **stack-based VM in c++** and a **compiler in Python** ; a disassembler is developped concurrently to help debugging. 
 Right now it is at the "fancy calculator" stage.
@@ -7,14 +6,12 @@ Right now it is at the "fancy calculator" stage.
 *note :*  to ensure that the bytecodes match between the compiler and vm, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) based on the compiler definitions. In fact now it also generates the dispatch table for the interpreter using computed gotos ([core.cpp](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp)).
 
 ### Why c++ and Python?
-
 A language is supposed to be fast and efficient, but all software should be as simple and readable as can be.  
-I chose c++ for the vm for its performance, readability (less verbose than c) and access to the standard libray : i don't want to start from the ground up (implementting strings, dictionnaries, etc) because it would probably less efficient and a potential source of bugs.  
-However, since i intend to ship programs as bundles of bytecode, the compiler does not have to be that performant. I chose Python because it is an experimentation-friendly, high-level language that i love. 
+I chose c++ for the vm for its performance, readability (less verbose than c) and access to the standard libray : i don't want to start from the ground up (implementing strings, dictionnaries, etc) because the code would probably be less efficient and a source of potential bugs.  
+However, since i intend programs to be shipped as bundles of bytecode, the compiler does not have to be that performant. I chose Python because it is an experimentation-friendly, high-level language that i love.
 
 ## Where is it going ?
-
-The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) : I can't see why new languages keep those redondant, clutter-inducing curly braces. 
+The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren). I can't see why new languages keep those redondant, clutter-inducing curly braces. 
 
 Ex:
 ``` CoffeeScript
@@ -55,12 +52,11 @@ for obj in test
 * so why bother?
 
 ### How do you intend to make classes support duck-typing?
-
 Good question!
 
-I intend to make objects arrays of values with a header that consists of  a pointer to the class it implement. The classes themselves will have dictionaries of internal functions which will "know" at compile time the offsets of a class instance's members, so a class function should be fast when accessing the object's members.
+I intend to make objects arrays of values that begin with a pointer to the class it implement. The classes themselves will each have a dictionary of functions which will "know" at compile time the offsets of a class instance's members, so a class function should be fast when accessing the object's members.
 
- Functions with the same signature (name, number of arguments, and also the arguments' types if specified) have the same hash number ; that's the magic that allows duck typing.
+Functions with the same signature (name, number of arguments, and also the arguments' types if specified) have the same hash number ; that's the magic that allows duck typing.
 
 This, however, means there will be a fixed amount of indirection when an outsider function accesses an object's member value since it will not know the correct offset ; the object's members will not be accessible directly (there will be getters and setters functions generated automatically).
 
