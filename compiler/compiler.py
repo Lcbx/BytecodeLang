@@ -155,7 +155,7 @@ def next():
 
 
 ####################################
-## the recursive code generator
+## code generation utilities
 ####################################
 
 token = None
@@ -175,7 +175,17 @@ def consume(Type, accepted=None, exact=False):
 			return True
 	return False
 
+# a function to show parse errors
+errorCount = 0
+def Error(*msg):
+	print("Error line", line, ":", *msg)
+	global errorCount
+	errorCount += 1
 
+
+####################################
+## the recursive code generator
+####################################
 
 def Program():
 	global token
@@ -202,7 +212,11 @@ def OrExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, "or", exact=True):
+		if len(inst)==0:
+			Error("or expression missing left operand")
 		inst2 = AndExpression()
+		if len(inst2)==0:
+			Error("or expression missing right operand")
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
@@ -219,7 +233,11 @@ def AndExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, "and", exact=True):
+		if len(inst)==0:
+			Error("and expression missing left operand")
 		inst2 = Equality()
+		if len(inst2)==0:
+			Error("and expression missing right operand")
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
@@ -234,6 +252,8 @@ def Equality():
 	inst = Comparison()
 	if 	consume(OP, "==", exact=True) or consume(OP, "!=", True):
 		op = consumed
+		if len(inst)==0:
+			Error("missing left operand before", op)
 		inst2 = Comparison()
 		inst.extend(inst2)
 		if  len(inst2)!=0:
@@ -242,7 +262,7 @@ def Equality():
 			else:
 				inst.append(OP_NEQ)
 		else:
-			print("missing right operand for", op, "line", line)
+			Error("missing right operand after", op)
 		return inst
 	return inst
 
@@ -250,9 +270,11 @@ def Comparison():
 	inst = Addition()
 	if consume(OP, ">", exact=True) or consume(OP, ">=", True) or consume(OP, "<", exact=True) or consume(OP, "<=", True):
 		op = consumed
+		if len(inst)==0:
+			Error("missing left operand before", op)
 		inst2 = Addition()
 		inst.extend(inst2)
-		if  len(inst2)!=0:
+		if len(inst2)!=0:
 			if op == ">":
 				inst.append(OP_GT)
 				return inst
@@ -266,7 +288,7 @@ def Comparison():
 				inst.append(OP_LTE)
 				return inst
 		else:
-			print("missing right operand for", op, "line", line)
+			Error("missing right operand after", op)
 	return inst
 
 
@@ -282,6 +304,8 @@ def Addition():
 	inst = Multiply()
 	while consume(OP,"+-"):
 		op = consumed
+		if len(inst)==0:
+			Error("missing left operand before", op)
 		inst2 = Multiply()
 		inst.extend(inst2)
 		if  len(inst2)!=0:
@@ -290,15 +314,18 @@ def Addition():
 			else:
 				inst.append(OP_SUB)
 		else:
-			print("missing right operand for", op, "line", line)
+			Error("missing right operand after", op)
 	if negate:
 		inst.append(OP_NEG)
 	return inst
+
 
 def Multiply():
 	inst = Primary()
 	while consume(OP, "*/"):
 		op = consumed
+		if len(inst)==0:
+			Error("missing left operand before", op)
 		inst2 = Primary()
 		inst.extend(inst2)
 		if  len(inst2)!=0:
@@ -307,7 +334,7 @@ def Multiply():
 			elif op == "/":
 				inst.append(OP_DIV)
 		else:
-			print("missing right operand for", op, "line", line)
+			Error("missing right operand after", op)
 	return inst
 
 
@@ -319,7 +346,6 @@ def Primary():
 		inst.append(OP_FLOAT)
 		for b in struct.pack("f", consumed):
 			inst.append(b)
-		return inst
 	
 	elif consume(INT):
 		val = consumed
@@ -334,24 +360,21 @@ def Primary():
 				b = struct.pack("i", val)
 				inst.append(OP_INT4)
 		inst.extend(b)
-		return inst
 	
 	elif consume(STRING):
 		inst.append(OP_STRING)
 		for c in consumed:
 			inst.append(ord(c))
 		inst.append(0)
-		return inst
 	
 	elif consume(AUX, "("):
 		inst = OrExpression()
 		if not consume(AUX, ")"):
-			print("Primary : expecting closing ) line", line)
-		return inst
+			Error("closing parenthese ) missing")
 	
 	elif type(token) is not EOF: 
-		print("Primary : illegal token", token, "line", line)
-	token = next()
+		Error("illegal token", token)
+		token = next()
 	return inst
 
 
@@ -364,6 +387,9 @@ instructions = []
 with open(args.input,'r') as file:
 	instructions = Program()
 
+print(errorCount, "errors")
 print("instructions", instructions)
+
+#if errorCount == 0 :
 with open(args.output,'wb') as file:
 	file.write(bytes(instructions))
