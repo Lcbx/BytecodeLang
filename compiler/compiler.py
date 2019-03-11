@@ -91,7 +91,7 @@ def next():
 		return AUX(aux)
 
 	# operators (there can be with a = behind)
-	if current in "=!><-+/*":
+	elif current in "=!><-+/*":
 		op = None
 		advance()
 		if current=="=":
@@ -102,7 +102,7 @@ def next():
 		return OP(op)
 	
 	# name
-	if current.isalpha():
+	elif current.isalpha():
 		n = ""
 		while current.isalpha() or current.isdigit() :
 			n += current
@@ -110,7 +110,7 @@ def next():
 		return NAME(n)
 
 	# string
-	if current == "\"":
+	elif current == "\"":
 		s = ""
 		advance()
 		while current != "\"" or last == "\\" :
@@ -135,7 +135,7 @@ def next():
 		return STRING(s)
 	
 	# number
-	if current.isdigit():
+	elif current.isdigit():
 		n = ""
 		while current.isdigit():
 			n += current
@@ -150,8 +150,8 @@ def next():
 		else:
 			return INT(int(n))
 	
-	print("Reached the end of parse function : type", type(current),"value", current, "length", len(current), "line", line)
-	return
+	#print("Reached the end of parse function : type", type(current),"value", current, "length", len(current), "line", line)
+	return AUX(current)
 
 
 ####################################
@@ -236,10 +236,13 @@ def Equality():
 		op = consumed
 		inst2 = Comparison()
 		inst.extend(inst2)
-		if op == "==":
-			inst.append(OP_EQ)
+		if  len(inst2)!=0:
+			if op == "==":
+				inst.append(OP_EQ)
+			else:
+				inst.append(OP_NEQ)
 		else:
-			inst.append(OP_NEQ)
+			print("missing right operand for", op, "line", line)
 		return inst
 	return inst
 
@@ -249,18 +252,21 @@ def Comparison():
 		op = consumed
 		inst2 = Addition()
 		inst.extend(inst2)
-		if op == ">":
-			inst.append(OP_GT)
-			return inst
-		if op == ">=":
-			inst.append(OP_GTE)
-			return inst
-		if op == "<":
-			inst.append(OP_LT)
-			return inst
-		if op == "<=":
-			inst.append(OP_LTE)
-			return inst
+		if  len(inst2)!=0:
+			if op == ">":
+				inst.append(OP_GT)
+				return inst
+			elif op == ">=":
+				inst.append(OP_GTE)
+				return inst
+			elif op == "<":
+				inst.append(OP_LT)
+				return inst
+			elif op == "<=":
+				inst.append(OP_LTE)
+				return inst
+		else:
+			print("missing right operand for", op, "line", line)
 	return inst
 
 
@@ -278,11 +284,13 @@ def Addition():
 		op = consumed
 		inst2 = Multiply()
 		inst.extend(inst2)
-		if op == "+":
-			inst.append(OP_ADD)
+		if  len(inst2)!=0:
+			if op == "+":
+				inst.append(OP_ADD)
+			else:
+				inst.append(OP_SUB)
 		else:
-			inst.append(OP_SUB)
-	
+			print("missing right operand for", op, "line", line)
 	if negate:
 		inst.append(OP_NEG)
 	return inst
@@ -293,10 +301,13 @@ def Multiply():
 		op = consumed
 		inst2 = Primary()
 		inst.extend(inst2)
-		if op == "*":
-			inst.append(OP_MUL)
-		if op == "/":
-			inst.append(OP_DIV)
+		if  len(inst2)!=0:
+			if op == "*":
+				inst.append(OP_MUL)
+			elif op == "/":
+				inst.append(OP_DIV)
+		else:
+			print("missing right operand for", op, "line", line)
 	return inst
 
 
@@ -310,7 +321,7 @@ def Primary():
 			inst.append(b)
 		return inst
 	
-	if consume(INT):
+	elif consume(INT):
 		val = consumed
 		if val>=-128 and val<128:
 			b = struct.pack("b", val)
@@ -325,21 +336,20 @@ def Primary():
 		inst.extend(b)
 		return inst
 	
-	if consume(STRING):
+	elif consume(STRING):
 		inst.append(OP_STRING)
 		for c in consumed:
 			inst.append(ord(c))
 		inst.append(0)
 		return inst
-
-	print("hello")
-	if consume(AUX, "("):
+	
+	elif consume(AUX, "("):
 		inst = OrExpression()
 		if not consume(AUX, ")"):
 			print("Primary : expecting closing ) line", line)
 		return inst
 	
-	if type(token) is not EOF: 
+	elif type(token) is not EOF: 
 		print("Primary : illegal token", token, "line", line)
 	token = next()
 	return inst
