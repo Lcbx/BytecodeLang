@@ -19,20 +19,13 @@ class TOKEN:
 		self.value = value
 	def __str__(self):
 		return type(self).__name__ + ":" + str(self.value)
-class NAME(TOKEN):
-	pass
-class STRING(TOKEN):
-	pass
-class FLOAT(TOKEN):
-	pass
-class INT(TOKEN):
-	pass
-class OP(TOKEN):
-	pass
-class AUX(TOKEN):
-	pass
-class EOF(TOKEN):
-	pass
+class NAME(TOKEN): pass
+class STRING(TOKEN): pass
+class FLOAT(TOKEN): pass
+class INT(TOKEN): pass
+class OP(TOKEN): pass
+class AUX(TOKEN): pass
+class EOF(TOKEN): pass
 
 ####################################
 ## parsing globals and utils
@@ -178,7 +171,7 @@ def consume(Type, accepted=None, exact=False):
 # a function to show parse errors
 errorCount = 0
 def Error(*msg):
-	print("Error line", line, ":", *msg)
+	print("Error line", line+1, ":", *msg)
 	global errorCount
 	errorCount += 1
 
@@ -373,7 +366,7 @@ def Primary():
 			Error("closing parenthese ) missing")
 	
 	elif type(token) is not EOF: 
-		Error("illegal token", token)
+		Error("illegal token : \""+str(token.value)+"\"")
 		token = next()
 	return inst
 
