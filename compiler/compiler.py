@@ -19,6 +19,7 @@ class TOKEN:
 		self.value = value
 	def __str__(self):
 		return type(self).__name__ + ":" + str(self.value)
+
 class NAME(TOKEN): pass
 class STRING(TOKEN): pass
 class FLOAT(TOKEN): pass
@@ -205,19 +206,13 @@ def OrExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, "or", exact=True):
-		if len(inst)==0:
-			Error("or expression missing left operand")
+		if len(inst)==0: Error("or expression missing left operand")
 		inst2 = AndExpression()
-		if len(inst2)==0:
-			Error("or expression missing right operand")
+		if len(inst2)==0: Error("or expression missing right operand")
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
-		inst.append(OP_JUMP_IF)
-		inst.extend([total_offset & 0xFF, (total_offset & 0xFF00) >> 8])
-		inst.append(OP_POP)
-		inst.extend(cond)
-		total_offset-= (len(cond)+ OVERHEAD)
+		inst.extend([ OP_JUMP_IF, *struct.pack("h", total_offset), OP_POP, *cond ])
 	return inst
 
 def AndExpression():
@@ -226,18 +221,13 @@ def AndExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, "and", exact=True):
-		if len(inst)==0:
-			Error("and expression missing left operand")
+		if len(inst)==0: Error("and expression missing left operand")
 		inst2 = Equality()
-		if len(inst2)==0:
-			Error("and expression missing right operand")
+		if len(inst2)==0: Error("and expression missing right operand")
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
-		inst.append(OP_JUMP_IF_FALSE)
-		inst.extend([total_offset & 0xFF, (total_offset & 0xFF00) >> 8])
-		inst.append(OP_POP)
-		inst.extend(cond)
+		inst.extend([ OP_JUMP_IF_FALSE, *struct.pack("h", total_offset), OP_POP, *cond ])
 		total_offset-= (len(cond)+ OVERHEAD)
 	return inst
 
@@ -245,43 +235,28 @@ def Equality():
 	inst = Comparison()
 	if 	consume(OP, "==", exact=True) or consume(OP, "!=", True):
 		op = consumed
-		if len(inst)==0:
-			Error("missing left operand before", op)
+		if len(inst)==0: Error("missing left operand before", op)
 		inst2 = Comparison()
 		inst.extend(inst2)
-		if  len(inst2)!=0:
-			if op == "==":
-				inst.append(OP_EQ)
-			else:
-				inst.append(OP_NEQ)
-		else:
-			Error("missing right operand after", op)
-		return inst
+		if len(inst2)!=0:
+			if op == "==":	 inst.append(OP_EQ)
+			elif op == "!=": inst.append(OP_NEQ)
+		else: Error("missing right operand after", op)
 	return inst
 
 def Comparison():
 	inst = Addition()
-	if consume(OP, ">", exact=True) or consume(OP, ">=", True) or consume(OP, "<", exact=True) or consume(OP, "<=", True):
+	if consume(OP, ">=", exact=True) or consume(OP, ">=", True) or consume(OP, "<", exact=True) or consume(OP, "<=", True):
 		op = consumed
-		if len(inst)==0:
-			Error("missing left operand before", op)
+		if len(inst)==0: Error("missing left operand before", op)
 		inst2 = Addition()
 		inst.extend(inst2)
 		if len(inst2)!=0:
-			if op == ">":
-				inst.append(OP_GT)
-				return inst
-			elif op == ">=":
-				inst.append(OP_GTE)
-				return inst
-			elif op == "<":
-				inst.append(OP_LT)
-				return inst
-			elif op == "<=":
-				inst.append(OP_LTE)
-				return inst
-		else:
-			Error("missing right operand after", op)
+			if op == ">":	 inst.append(OP_GT)
+			elif op == ">=": inst.append(OP_GTE)
+			elif op == "<":	 inst.append(OP_LT)
+			elif op == "<=": inst.append(OP_LTE)
+		else: Error("missing right operand after", op)
 	return inst
 
 
@@ -289,27 +264,21 @@ def Addition():
 	# might lead by a - or ! to negate number or bool
 	negate  = False
 	if consume(OP, "!-"):
-		if consumed=="-" and( type(token) is INT or type(token) is FLOAT ):
+		if consumed=="-" and ( type(token) is INT or type(token) is FLOAT ):
 			token.value *= -1
-		else:
-			negate = True
+		else: negate = True
 	
 	inst = Multiply()
 	while consume(OP,"+-"):
 		op = consumed
-		if len(inst)==0:
-			Error("missing left operand before", op)
+		if len(inst)==0: Error("missing left operand before", op)
 		inst2 = Multiply()
 		inst.extend(inst2)
 		if  len(inst2)!=0:
-			if op == "+":
-				inst.append(OP_ADD)
-			else:
-				inst.append(OP_SUB)
-		else:
-			Error("missing right operand after", op)
-	if negate:
-		inst.append(OP_NEG)
+			if op == "+":	inst.append(OP_ADD)
+			elif op == "-": inst.append(OP_SUB)
+		else: Error("missing right operand after", op)
+	if negate: inst.append(OP_NEG)
 	return inst
 
 
@@ -317,17 +286,13 @@ def Multiply():
 	inst = Primary()
 	while consume(OP, "*/"):
 		op = consumed
-		if len(inst)==0:
-			Error("missing left operand before", op)
+		if len(inst)==0: Error("missing left operand before", op)
 		inst2 = Primary()
 		inst.extend(inst2)
-		if  len(inst2)!=0:
-			if op == "*":
-				inst.append(OP_MUL)
-			elif op == "/":
-				inst.append(OP_DIV)
-		else:
-			Error("missing right operand after", op)
+		if len(inst2)!=0:
+			if op == "*":	inst.append(OP_MUL)
+			elif op == "/":	inst.append(OP_DIV)
+		else: Error("missing right operand after", op)
 	return inst
 
 
