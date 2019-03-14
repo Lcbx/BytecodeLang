@@ -40,6 +40,7 @@ OP("OP_NEG", 0),
 OP("OP_PRINT", 0),
 
 OP("OP_SHOW_STACK", 0),
+OP("OP_SHOW_REGISTERS", 0),
 OP("OP_END", 0),
 ]
 

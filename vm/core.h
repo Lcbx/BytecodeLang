@@ -240,6 +240,13 @@ else push(a.type operator b.type);				\
 		}
 	}
 
+	inline void op_show_registers(){
+		std::cout << "\n<registers> \n";
+		for(auto var : registers) {
+			std::cout << " #" << var.toString();
+		}
+	}
+
 	inline void op_end(){
 		DEBUG(std::cout << "END" << std::endl;)
 	}
@@ -255,8 +262,8 @@ int main(int argc, char* argv[]) {
 		i.execute(argv[1]);
 	}
 	DEBUG(
-		uchar c = OP_SHOW_STACK;
-		i.execute(ByteCode(&c, 1));
+		i.op_show_stack();
+		i.op_show_registers();
 	)
 	return 0;
 }

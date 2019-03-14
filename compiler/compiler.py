@@ -176,6 +176,11 @@ def Error(*msg):
 	global errorCount
 	errorCount += 1
 
+# the variables
+Variables = {}
+def declare(name):
+	Variables[name] = len(Variables)
+
 
 ####################################
 ## the recursive code generator
@@ -189,16 +194,36 @@ def Program():
 	# if not for this, consume won't work at first
 	token = next()
 	prog = Statement()
-	#prog.append(45)
 	return prog
 
 def Statement():
+	inst = []
 	if consume(NAME, "hi", exact=True):
-		inst = OrExpression()
+		if consume(NAME, "def", exact=True):
+			if consume(NAME):
+				name = consumed
+				if name in Variables: Error(name, "already declared")
+				if consume(OP, "="):
+					declare(name)
+					inst = assign(name)
+				elif consume(AUX, "("): Error("functions not implemented yet")
+			else: Error("no name after def")
+		elif consume(NAME):
+			name = consumed
+			if name not in Variables: Error(name, "not declared yet")
+			elif consume(OP, "="):	inst = assign(name)
+			elif consume(AUX, "("): Error("functions not implemented yet")
+		else:
+			inst = OrExpression()
 		inst2 = Statement()
 		inst.extend(inst2)
-		return inst
-	return []
+	return inst
+
+def assign(name):
+	inst = OrExpression()
+	inst.append(OP_STORE)
+	inst.append(Variables[name])
+	return inst
 
 def OrExpression():
 	conditions = []
@@ -300,18 +325,24 @@ def Primary():
 	global token
 	inst = []
 
-	if consume(FLOAT):
-		inst.extend([ OP_FLOAT, *struct.pack("f", consumed) ])
+	if consume(NAME):
+		name = consumed
+		if consumed in Variables:
+			inst = [ OP_LOAD, Variables[name] ]
+		else: Error("unknown name", name)
+
+	elif consume(FLOAT):
+		inst = [ OP_FLOAT, *struct.pack("f", consumed) ]
 	
 	elif consume(INT):
 		val = consumed
-		if 	 val>=-2**7 and val<2**7: 	inst.extend([ OP_INT1, *struct.pack("b", val) ])
-		elif val>=-2**15 and val<2**15:	inst.extend([ OP_INT2, *struct.pack("h", val) ])
-		elif val>=-2**31 and val<2**31:	inst.extend([ OP_INT4, *struct.pack("i", val) ])
+		if 	 val>=-2**7 and val<2**7: 	inst = [ OP_INT1, *struct.pack("b", val) ]
+		elif val>=-2**15 and val<2**15:	inst = [ OP_INT2, *struct.pack("h", val) ]
+		elif val>=-2**31 and val<2**31:	inst = [ OP_INT4, *struct.pack("i", val) ]
 		else: Error("value too high to be an int (use a float ?)")
 	
 	elif consume(STRING):
-		inst.extend([ OP_STRING, *map(ord,consumed), 0 ])
+		inst = [ OP_STRING, *map(ord,consumed), 0 ]
 		Type = STRING
 	
 	elif consume(AUX, "("):

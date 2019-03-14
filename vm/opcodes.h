@@ -31,4 +31,5 @@ const uchar OP_DIV = 24;
 const uchar OP_NEG = 25;
 const uchar OP_PRINT = 26;
 const uchar OP_SHOW_STACK = 27;
-const uchar OP_END = 28;
+const uchar OP_SHOW_REGISTERS = 28;
+const uchar OP_END = 29;
