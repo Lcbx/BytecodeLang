@@ -239,7 +239,7 @@ def Equality():
 		inst2 = Comparison()
 		inst.extend(inst2)
 		if len(inst2)!=0:
-			if op == "==":	 inst.append(OP_EQ)
+			if 	 op == "==": inst.append(OP_EQ)
 			elif op == "!=": inst.append(OP_NEQ)
 		else: Error("missing right operand after", op)
 	return inst
@@ -252,7 +252,7 @@ def Comparison():
 		inst2 = Addition()
 		inst.extend(inst2)
 		if len(inst2)!=0:
-			if op == ">":	 inst.append(OP_GT)
+			if 	 op == ">":	 inst.append(OP_GT)
 			elif op == ">=": inst.append(OP_GTE)
 			elif op == "<":	 inst.append(OP_LT)
 			elif op == "<=": inst.append(OP_LTE)
@@ -275,7 +275,7 @@ def Addition():
 		inst2 = Multiply()
 		inst.extend(inst2)
 		if  len(inst2)!=0:
-			if op == "+":	inst.append(OP_ADD)
+			if 	 op == "+":	inst.append(OP_ADD)
 			elif op == "-": inst.append(OP_SUB)
 		else: Error("missing right operand after", op)
 	if negate: inst.append(OP_NEG)
@@ -290,7 +290,7 @@ def Multiply():
 		inst2 = Primary()
 		inst.extend(inst2)
 		if len(inst2)!=0:
-			if op == "*":	inst.append(OP_MUL)
+			if 	 op == "*":	inst.append(OP_MUL)
 			elif op == "/":	inst.append(OP_DIV)
 		else: Error("missing right operand after", op)
 	return inst
@@ -301,34 +301,22 @@ def Primary():
 	inst = []
 
 	if consume(FLOAT):
-		inst.append(OP_FLOAT)
-		for b in struct.pack("f", consumed):
-			inst.append(b)
+		inst.extend([ OP_FLOAT, *struct.pack("f", consumed) ])
 	
 	elif consume(INT):
 		val = consumed
-		if val>=-128 and val<128:
-			b = struct.pack("b", val)
-			inst.append(OP_INT1)
-		else:
-			if val>=-128 * 256 and val<128 * 256:
-				b = struct.pack("h", val)
-				inst.append(OP_INT2)
-			else:
-				b = struct.pack("i", val)
-				inst.append(OP_INT4)
-		inst.extend(b)
+		if 	 val>=-2**7 and val<2**7: 	inst.extend([ OP_INT1, *struct.pack("b", val) ])
+		elif val>=-2**15 and val<2**15:	inst.extend([ OP_INT2, *struct.pack("h", val) ])
+		elif val>=-2**31 and val<2**31:	inst.extend([ OP_INT4, *struct.pack("i", val) ])
+		else: Error("value too high to be an int (use a float ?)")
 	
 	elif consume(STRING):
-		inst.append(OP_STRING)
-		for c in consumed:
-			inst.append(ord(c))
-		inst.append(0)
+		inst.extend([ OP_STRING, *map(ord,consumed), 0 ])
+		Type = STRING
 	
 	elif consume(AUX, "("):
 		inst = OrExpression()
-		if not consume(AUX, ")"):
-			Error("closing parenthese ) missing")
+		if not consume(AUX, ")"): Error("closing parenthese ) missing")
 	
 	elif type(token) is not EOF: 
 		Error("illegal token : \""+str(token.value)+"\"")
