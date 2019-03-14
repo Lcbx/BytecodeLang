@@ -343,7 +343,6 @@ def Primary():
 	
 	elif consume(STRING):
 		inst = [ OP_STRING, *map(ord,consumed), 0 ]
-		Type = STRING
 	
 	elif consume(AUX, "("):
 		inst = OrExpression()
