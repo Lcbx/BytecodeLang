@@ -1,4 +1,3 @@
 hi def hello = 34
-hi 0 * hello == 0
-hi def dear = 34,5
-hi hello = dear
+hi def dear = 34.5
+hi def equal = hello == (dear - 0.5)

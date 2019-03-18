@@ -136,6 +136,7 @@ def next():
 			advance()
 		# if there is a dot, it's a float
 		if current == ".":
+			n += current
 			advance()
 			while current.isdigit():
 				n += current

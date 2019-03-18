@@ -57,14 +57,13 @@ public:
 ////////////////////////////////////
 class Interpreter {
 public:
-	std::stack<Variable> stack;
-	std::vector<Variable> registers;
-	Interpreter() : registers(256) {}
+	std::deque<Variable> stack;
+	Interpreter() {}
 	ByteCode code;
 
-	inline Variable& top() { return stack.top(); }
-	inline Variable pop() { Variable var(top()); stack.pop(); return var; }
-	template<typename T> inline void push(T arg) { stack.emplace<Variable>(arg); }
+	inline Variable& top() { return stack.back(); }
+	inline Variable pop() { Variable var(top()); stack.pop_back(); return var; }
+	template<typename T> inline void push(T arg) { stack.emplace_back<Variable>(arg); }
 	
 
 	void execute_switch();
@@ -138,7 +137,7 @@ public:
 	
 	inline void op_load(){
 		uchar address = code.read<uchar>();
-		Variable var = registers[address];
+		Variable var = stack[address];
 		// compiler says no copy construction #WorkAroundFTW
 		push(None_);
 		Variable::copy(var, top());
@@ -147,9 +146,12 @@ public:
 
 	inline void op_store(){
 		uchar address = code.read<uchar>();
-		Variable var = pop();
-		registers[address] = var;
-		DEBUG(std::cout << "STORE " << +address << " : " << var.toString() << std::endl;)
+		if (address!=stack.size()-1){
+			Variable var = pop();
+			stack[address] = var;
+			DEBUG(std::cout << "STORE " << +address << " : " << var.toString() << std::endl;)
+		}
+		DEBUG(else std::cout << "STORE " << +address << std::endl;)
 	}
 
 	inline void op_pop(){
@@ -184,6 +186,8 @@ Variable b = pop();					\
 Variable a = pop();					\
 if (a.type == Int_ && b.type == Int_) 						\
 	push(a.content.asInt operator b.content.asInt); 		\
+else if(a.type == Float_ && b.type == Float_)				\
+	push(a.content.asFloat operator b.content.asFloat); 	\
 else if(a.type == Float_ && b.type == Int_)					\
 	push(a.content.asFloat operator (Float)b.content.asInt);\
 else if(a.type == Int_ && b.type == Float_)					\
@@ -227,23 +231,15 @@ else push(a.type operator b.type);				\
 	
 
 	inline void op_print(){
+		DEBUG(std::cout << "print ";)
 		std::cout << top().toString();
 		DEBUG(std::cout << " asInt " << top().content.asInt << std::endl;)
 	}
 	
 	inline void op_show_stack(){
 		std::cout << "\n<stack> \n";
-		std::stack<Variable> temp = std::stack<Variable>(stack);
-		while (!temp.empty()) {
-			std::cout << "# " << temp.top().toString() << std::endl;
-			temp.pop();
-		}
-	}
-
-	inline void op_show_registers(){
-		std::cout << "\n<registers> \n";
-		for(auto var : registers) {
-			std::cout << " #" << var.toString();
+		for( auto it : stack) {
+			std::cout << "# " << it.toString() << std::endl;
 		}
 	}
 
@@ -263,7 +259,6 @@ int main(int argc, char* argv[]) {
 	}
 	DEBUG(
 		i.op_show_stack();
-		i.op_show_registers();
 	)
 	return 0;
 }
