@@ -1,38 +1,19 @@
 ### FIX :
-- disassembler does not support jumps
-- vm's switch case is ugly AND has a lot of duplicate code
 
-#### flesh out the compiler
+#### bugs
+- verify compiler, some statements don't get translated
+
+#### compiler
 - produce instructions (WIP)
-- add opcodes' stack effect in opcodes.py, that would make the dissassembler a lot simpler
+- make better variable assignation and loading
+- add control structures (if, while, for, etc)
 
-#### flesh out the language
+#### language
 - support functions
 - support basic data structures
 - support classes
 - implement Nan tagging : https://github.com/wren-lang/wren/blob/master/src/vm/wren_value.h
 
 ### technical ideas
-- support loading of int from 1 or 2 bytes, since most numbers are < 255
 - test equality strictly based on type and object data. if an object is composed of other objects, check if the pointer is the same and, if it isn't, test if the object data is the same.
-- concern : we can have contiguous memory through STL in vectors and in classes, but map seems hard...
 - (?) only use dynamic allocation of arrays as hardcoded data structure, then implement maps, vectors and lists as "normal" classes that are loaded  on vm start - simpler vm and more flexible BUT that makes for a lot of homemade code and potential bugs
-- 1.5 pass : parse and identify statements in one pass,
-but each statement is recursive from the one before within a scope,
-so some analysis on type and variable use can be done.
-code gets generated on return of recursion, so in reverse order.
-``` dart
-// Exemple :
-statement1
-if condition
-	statement2
-	statement3
-statement4
-// becomes as a recursive function call :
-statement1 				// 5th to generate code
-	if someCondition 		// 3rd, will wait for statement4
-		 statement2 		// 2nd
-			 statement3 	// 1st
-	statement4 			// 4th
-```
-- errors during parsing : make parsing wrapper that catches all errors and propagates them as array in return statements so that at end of parsing we have a maximum of relevant info
