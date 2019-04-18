@@ -200,31 +200,37 @@ def Program():
 def Statement():
 	inst = []
 	if consume(NAME, "hi", exact=True):
+		
 		if consume(NAME, "def", exact=True):
 			if consume(NAME):
 				name = consumed
 				if name in Variables: Error(name, "already declared")
 				if consume(OP, "="):
 					declare(name)
-					inst = assign(name)
+					inst = Expression()
 				elif consume(AUX, "("): Error("functions not implemented yet")
 			else: Error("no name after def")
+			
 		elif consume(NAME):
 			name = consumed
 			if name not in Variables: Error(name, "not declared yet")
-			elif consume(OP, "="):	inst = assign(name)
+			elif consume(OP, "="):
+				inst = Expression()
+				inst.append(OP_STORE)
+				inst.append(Variables[name])
 			elif consume(AUX, "("): Error("functions not implemented yet")
+		
 		else:
-			inst = OrExpression()
+			inst = Expression()
+		
 		inst2 = Statement()
 		inst.extend(inst2)
+	
 	return inst
 
-def assign(name):
-	inst = OrExpression()
-	inst.append(OP_STORE)
-	inst.append(Variables[name])
-	return inst
+
+def Expression():
+	return OrExpression()
 
 def OrExpression():
 	conditions = []
