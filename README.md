@@ -1,7 +1,7 @@
 ## What's this ?
 BytecodeLang (name is temporary) is a language i've been working on and off since mid-2018.  
-It consists of a **stack-based VM in c++** and a **compiler in Python** ; a disassembler is developped concurrently to help debugging. 
-Right now it is at the "fancy calculator" stage.
+It consists of a **stack-based VM in c++** and a **compiler in Python** (with no external libraries in either case); a disassembler is developped concurrently to help debugging. 
+Right now it is at the "slightly smart calculator" stage.
 
 *note :*  to ensure that the bytecodes match between the compiler and vm, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) based on the compiler definitions. In fact now it also generates the dispatch table for the interpreter using computed gotos ([core.cpp](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp)).
 
