@@ -20,8 +20,8 @@ with open(args.input,'rb') as file:
 		opName = opcodes[opcode].name
 		print(i, ":", end="\t")
 		val = ""
+		i+=1
 		if opcode == OP_STRING:
-				i+=1
 				c = content[i]
 				while c!= 0 and  c != None:
 					val+= chr(content[i])
@@ -29,11 +29,12 @@ with open(args.input,'rb') as file:
 					c = content[i]
 				i+=1
 		else:
-			i+=1
 			bytesConsumed = opcodes[opcode].bytesConsumed
 			fmt = None
 			if bytesConsumed != 0:
-				if bytesConsumed == 1:
+				if opcode == OP_FLOAT:
+					fmt = "f"
+				elif bytesConsumed == 1:
 					fmt = "b"
 				elif bytesConsumed == 2:
 					fmt="h"

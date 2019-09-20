@@ -235,7 +235,7 @@ def Expression():
 def OrExpression():
 	conditions = []
 	inst = AndExpression()
-	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
+	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, "or", exact=True):
 		if len(inst)==0: Error("or expression missing left operand")

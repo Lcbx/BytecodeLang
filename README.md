@@ -1,9 +1,9 @@
 ## What's this ?
 BytecodeLang (name is temporary) is a language i've been working on and off since mid-2018.  
-It consists of a **stack-based VM in c++** and a **compiler in Python** ; a disassembler is developped concurrently to help debugging. 
-Right now it is at the "fancy calculator" stage.
+It consists of a **stack-based VM in c++** and a **compiler in Python** (with no external libraries in either case); a few tools (an [assembly-like compiler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/assembly_compiler.py), a [disassembler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/disassembler.py) and a [vm simulator](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/vm_simulator.py)) are developped concurrently to help debugging. 
+Right now it is at the "slightly smart calculator" stage.
 
-*note :*  to ensure that the bytecodes match between the compiler and vm, i use a script ([opcodes.py](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py)) that generates a c++ header file ([opcodes.h](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h)) based on the compiler definitions. In fact now it also generates the dispatch table for the interpreter using computed gotos ([core.cpp](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp)).
+*note :*  to ensure that the bytecodes match between the compiler and vm, i use a [script](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py) that generates a [c++ header file](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h) based on the compiler definitions. In fact now it also generates the dispatch table for the interpreter using [computed gotos](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp).
 
 ### Why c++ and Python?
 A language is supposed to be fast and efficient, but all software should be as simple and readable as can be.  
@@ -11,37 +11,38 @@ I chose c++ for the vm for its performance, readability (less verbose than c) an
 However, since i intend programs to be shipped as bundles of bytecode, the compiler does not have to be that performant. I chose Python because it is an experimentation-friendly, high-level language that i love.
 
 ## Where is it going ?
-The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren). I can't see why new languages keep those redondant, clutter-inducing curly braces. 
+The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (from whom i borrow quite heavily otherwise). I can't see why new languages keep those redondant, clutter-inducing curly braces. 
 
 Ex:
 ``` CoffeeScript
 class Bird
+    # members are not defined in constructor. no static fields :
+    # global state belongs at script level, not in a class
     wingspan = 1
     # c++ style constructor, with automatic initialisation (based on variable name) 
     Bird(wingspan)
-    # declaring a function
-    fly()
+    # declaring a function uses the def keyword
+    def fly()
         # access to members will be made with a @, faster than "self." and readable
         return @wingspan * 40
-    caw()
+    def caw()
         # 'no unecessary chatter' philosophy : print, log, input and output use << (print by default)
         << "caaaw"
 
 class Hawk(Bird)
     wingspan = 1.3
-    caw()
+    def caw()
         << "<insert hawk sound here>"
 
 class Plane
-    fly()
+    def fly()
         return 150
-		
-# when not a class member, variables and functions must be declared with "var" and "func"
+
+# when not a class member, variables and functions must be declared with "var" and "def"
 var test = [Bird(), Hawk(), Plane()]
 for obj in test
-    # string interpolation and conversion are implicit
+    # string interpolation and conversion are implicit (i find it terse and expresive)
     << "object flying at " obj.fly() "mph"
-	
 ```
 
 ### Why no garbage collection?
