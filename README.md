@@ -43,6 +43,7 @@ var test = [Bird(), Hawk(), Plane()]
 for obj in test
     # string interpolation and conversion are implicit (i find it terse and expresive)
     << "object flying at " obj.fly() "mph"
+	
 ```
 
 ### Why no garbage collection?
