@@ -61,5 +61,5 @@ def f(expr1, ...)
 # goto label_1
 ```
 
-- inline every function call, then compress bytecode with LZW, and decompress on the fly ? that could make the program take less space both in file and in RAM during execution
+- inline every function call, then compress bytecode with LZW, and decompress on the fly ? that could make the program take less space both in file and in RAM during execution. See [this](http://www.cplusplus.com/articles/iL18T05o) for a performance-oriented implementation.
 
