@@ -8,12 +8,12 @@ Right now it is at the "slightly smart calculator" stage.
 ### Why c++ and Python?
 A language is supposed to be fast and efficient, but all software should be as simple and readable as can be.  
 I chose c++ for the vm for its performance, readability (less verbose than c) and access to the standard libray : i don't want to start from the ground up (implementing strings, dictionnaries, etc) because the code would probably be less efficient and a source of potential bugs.  
-However, since i intend programs to be shipped as bundles of bytecode, the compiler does not have to be that performant. I chose Python because it is an experimentation-friendly, high-level language that i love.
+However, since i intend programs to be shipped as bundles of bytecode, the compiler does not have to be that performant. I chose Python because it is an experimentation-friendly, high-level language that i <3.
 
 ## Where is it going ?
-The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (from whom i borrow quite heavily otherwise). I can't see why new languages keep those redondant, clutter-inducing curly braces. 
+The eventual goal is to make a class-based, duck-typed, heavily python-inspired language (syntactically meaningfull indentation, native lists and dictionnaries, range-based for) with manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (from whom i borrow quite heavily otherwise). I can't see why new languages keep those redondant, clutter-inducing curly braces.
 
-Ex:
+ ### Example (not actual state of language)
 ``` CoffeeScript
 class Bird
     # members are not defined in constructor. no static fields :
@@ -26,7 +26,7 @@ class Bird
         # access to members will be made with a @, faster than "self." and readable
         return @wingspan * 40
     def caw()
-        # 'no unecessary chatter' philosophy : print, log, input and output use << (print by default)
+        # 'no unecessary chatter' philosophy : print, log, input and output use << and >> (print by default)
         << "caaaw"
 
 class Hawk(Bird)
@@ -38,11 +38,14 @@ class Plane
     def fly()
         return 150
 
-# when not a class member, variables and functions must be declared with "var" and "def"
+# when not a class member, variables and functions must be declared with "var" and "def" 
 var test = [Bird(), Hawk(), Plane()]
 for obj in test
     # string interpolation and conversion are implicit (i find it terse and expresive)
     << "object flying at " obj.fly() "mph"
+
+# delete statement (similar to c++ delete)
+del var1 var2 var3
 	
 ```
 
@@ -66,4 +69,13 @@ This, however, means there will be a fixed amount of indirection when an outside
 The most important feature to make a language grow would be a good  **import** system : importing scripts from the language will be one of the first priorities. The simple way of doing it would be to interpret an imported script (and *not* its' bytecode as the bindings of functions' names and hash would be lost) at the same level as the main script. Since the language is not intended to be library-heavy and the compilation will be made in a single pass, there shouldn't be any problem. A better way would be to leave some compilation-relevant stuff in a file seprate from the bytecode to allow using it as library.
 Coming up after that will be **loading wrapped-up c++ dlls**.
 That would allow us to use all those fast and powerfull c++ libraries. It would also be cool to have a built-in utility tool like pip that'd dowload missing imports automatically from it's github repo. A man can dream.
+
+## Addendum : The balance between expressivity, readability and familiarity
+* **expressivity** is the collection of design decisions that allow the language to **do more with less** code.  
+Dynamic-typed languages are more expressive than static ones since you don't have to write a type near each variable definitions, so are functionnal languages with their versatile higher-order functions (most imperative languages today have introduced at least a subset of those).
+* **readability** is what allows another programmer to **intuit the logic** behind a piece of code.  
+The _goto_ statement was an early member of programming languages that allowed a lot of control over the program logical flow, but was later removed because the produced "spaguetti" code was unmaintainable. Statically-typed languages are deemed more readable (and so maintainable) than dynamic ones since types are explicit ; on top of that type-safety is ensured and therefore a lot of errors are caught before runtime. As a firm advocate of duck-typing, i do not believe the perks are worth the cost in boilerplate code and the arbitrary, overbearing rules that come with static typing.
+* Lastly, **familiarity** is how **easy to pick-up** the language is,  
+whether it's by being close to another language or more intuitive to non-programmers. This notion is close to readability, but not the exact same : familiarity is about ensuring the comprehension of a given piece of code through similarities to other languages and/or mathematical expressions the reader might have seen.
+For example, the mathematical statement `a = 1+2+3` would be just the same in Python, but would be translated to `(def a (+ 1 2 3))` in the functionnal language Clojure. Now if you know why it is that way, i'm sure you admire the idea behind the language. But let's agree that it's not intuitive at all. Familiarity is a good crutch to make a new language : by following or building on established rules and notions, it can ensure that the person learning it won't be lost. However, the desire to keep your language familiar to possible users can get in the way of any original design idea you have. Please consume in moderation.
  
