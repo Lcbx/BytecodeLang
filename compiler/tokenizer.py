@@ -142,17 +142,17 @@ def Tokenizer(file):
 	return enrichedToken
 
 
+####################################
+## filework
+####################################
 if __name__ == "__main__":
 	import argparse
-
-	####################################
-	## script operands
-	####################################
-
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-	commandLineArgs.add_argument("-i", '--input', nargs = '?', default = "../tests/test.txt", 	  help='path and name of file' )
-	commandLineArgs.add_argument("-o", '--output', nargs = '?', default = "../tests/test.tokens", help='path and name of file' )
+	commandLineArgs.add_argument("-i", '--input', nargs = '?',  help='path and name of file', default = "../tests/test.txt")
+	commandLineArgs.add_argument("-o", '--output', nargs = '?', help='path and name of file (usual extension is .tokens)' )
 	args = commandLineArgs.parse_args()
+	if not args.output:
+		args.output = args.input.replace('.txt', '.tokens')
 
 	instructions = []
 	with open(args.input,'r') as file:

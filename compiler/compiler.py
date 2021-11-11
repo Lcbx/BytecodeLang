@@ -1,17 +1,6 @@
 from opcodes import *
 from tokenizer import Tokenizer, NAME, STRING, FLOAT, INT, OP, AUX, EOF
-import argparse
 import struct
-
-
-####################################
-## script operands
-####################################
-
-commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-commandLineArgs.add_argument("-i", '--input', nargs = '?', default = "../tests/test.txt", help='path and name of file' )
-commandLineArgs.add_argument("-o", '--output', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
-args = commandLineArgs.parse_args()
 
 
 ####################################
@@ -29,7 +18,7 @@ def consume(Type, accepted=None, exact=False):
 	if type(token) is Type:
 		if accepted==None or (not exact and token.value in accepted or
 				 				  exact and token.value == accepted):
-			print(token)
+			#print(token)
 			consumed = token.value
 			token = next()
 			return True
@@ -228,15 +217,23 @@ def Primary():
 
 
 ####################################
-## the filework
+## filework
 ####################################
+if __name__ == "__main__":
+	import argparse
+	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
+	commandLineArgs.add_argument("-i", '--input', nargs = '?',  help='path and name of file', default = "../tests/test.txt" )
+	commandLineArgs.add_argument("-o", '--output', nargs = '?', help='path and name of file (usual extension is .hex)')
+	args = commandLineArgs.parse_args()
+	if not args.output:
+		args.output = args.input.replace('.txt', '.hex')
 
-instructions = []
-with open(args.input,'r') as file:
-	instructions = Program(file)
-	
-print(errorCount, "errors")
-if errorCount == 0 :
-	print("instructions", instructions)
-	with open(args.output,'wb') as file:
-		file.write(bytes(instructions))
+	instructions = []
+	with open(args.input,'r') as file:
+		instructions = Program(file)
+		
+	print(errorCount, "errors")
+	if errorCount == 0 :
+		print("instructions", instructions)
+		with open(args.output,'wb') as file:
+			file.write(bytes(instructions))

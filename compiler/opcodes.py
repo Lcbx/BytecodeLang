@@ -49,21 +49,23 @@ for n, op in enumerate(operations):
 	exec( f'{op.name} = {n}' )
 
 
-def verifyAndReplace(filename, expected):
-	# verify if the contents are up to date
-	file = open(filename,'r')
-	content = file.read()
-	file.close()
-	# if they aren't, changes the file content
-	if content != expected:
-		file = open(filename,'w')
-		file.write(expected)
-		file.close()
-		print(f'{filename} updated !')
-
-
+####################################
+## filework
+####################################
 if __name__ == '__main__':
 
+	def verifyAndReplace(filename, expected):
+		# verify if the contents are up to date
+		file = open(filename,'r')
+		content = file.read()
+		file.close()
+		# if they aren't, changes the file content
+		if content != expected:
+			file = open(filename,'w')
+			file.write(expected)
+			file.close()
+			print(f'{filename} updated !')
+			
 	VM_OPCODES_FILE = '../vm/opcodes.h'
 	VM_SWITCH_FILE  = '../vm/core.cpp'
 

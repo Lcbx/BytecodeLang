@@ -6,9 +6,9 @@ for n, op in enumerate(operations):
 	opcodes[n] = op
 
 import argparse
-parser = argparse.ArgumentParser(description='homemade vm simulator for project scripting language')
-parser.add_argument("-i", '--input', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
-args = parser.parse_args()
+commandLineArgs = argparse.ArgumentParser(description='homemade vm simulator for project scripting language')
+commandLineArgs.add_argument("-i", '--input', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
+args = commandLineArgs.parse_args()
 
 with open(args.input,'rb') as file:
 	#print("NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.")
