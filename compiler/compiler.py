@@ -1,160 +1,25 @@
 from opcodes import *
+from tokenizer import Tokenizer, NAME, STRING, FLOAT, INT, OP, AUX, EOF
 import argparse
 import struct
+
 
 ####################################
 ## script operands
 ####################################
 
-parser = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-parser.add_argument("-i", '--input', nargs = '?', default = "../tests/test.txt", help='path and name of file' )
-parser.add_argument("-o", '--output', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
-args = parser.parse_args()
-
-####################################
-## token types enum
-####################################
-class TOKEN:
-	def __init__(self, value):
-		self.value = value
-	def __str__(self):
-		return type(self).__name__ + ":" + str(self.value)
-
-class NAME(TOKEN): pass
-class STRING(TOKEN): pass
-class FLOAT(TOKEN): pass
-class INT(TOKEN): pass
-class OP(TOKEN): pass
-class AUX(TOKEN): pass
-class EOF(TOKEN): pass
-
-####################################
-## parsing globals and utils
-####################################
-
-# current line in code
-line = 0
-
-# last and current char
-last = ""
-current = ""
-
-# reads the next char
-def advance():
-	global last
-	global current
-	last = current
-	current = file.read(1)
-	#print(current, end="")
-	# current == "" if end of file
+commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
+commandLineArgs.add_argument("-i", '--input', nargs = '?', default = "../tests/test.txt", help='path and name of file' )
+commandLineArgs.add_argument("-o", '--output', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
+args = commandLineArgs.parse_args()
 
 
 ####################################
-## the big tokenizer function
+## the machinery
 ####################################
 
-# generates 1 token at a time
-def next():
-
-	# non-relevant drivel
-	while current == " " or current == "#" or current == "\n":
-			
-		# puny spaces
-		while current == " ":
-			advance()
-
-		# comments
-		if current == "#":
-			while current not in "\n" :
-				advance()
-		
-		# endline
-		if current == "\n":
-			global line
-			line+=1
-			advance()
-	
-	# if its an empty string, eof
-	if current =="":
-		return EOF(None)
-	
-	# auxiliary
-	if current in "\t[]{}()":
-		aux = current
-		advance()
-		return AUX(aux)
-
-	# operators (there can be with a = behind)
-	elif current in "=!><-+/*":
-		op = None
-		advance()
-		if current=="=":
-			op = last+current
-			advance()
-		else:
-			op = last
-		return OP(op)
-	
-	# name
-	elif current.isalpha():
-		n = ""
-		while current.isalpha() or current.isdigit() :
-			n += current
-			advance()
-		return NAME(n)
-
-	# string
-	elif current == "\"":
-		s = ""
-		advance()
-		while current != "\"" or last == "\\" :
-			# escape character
-			if current == "\\":
-				advance()
-				# newline
-				if current == "n":
-					s += "\n"
-				# string within string
-				else:
-					if current == "\"":
-						s += "\""
-					# right now we only support the above.
-					# the escapes are otherwise left as is
-					else:
-						s += ("\\" + current)
-			else:
-				s += current
-			advance()
-		advance()
-		return STRING(s)
-	
-	# number
-	elif current.isdigit():
-		n = ""
-		while current.isdigit():
-			n += current
-			advance()
-		# if there is a dot, it's a float
-		if current == ".":
-			n += current
-			advance()
-			while current.isdigit():
-				n += current
-				advance()
-			return FLOAT(float(n))
-		else:
-			return INT(int(n))
-	
-	#print("Reached the end of parse function : type", type(current),"value", current, "length", len(current), "line", line)
-	return AUX(current)
-
-
-####################################
-## code generation utilities
-####################################
-
-token = None
-consumed = None
+token = None 	# token to consume
+consumed = None # last token consumed
 # Type : 	type of token accepted
 # accepted: if exact==False : list of possible char accepted
 #			if exact==True : exact string accepted
@@ -164,7 +29,7 @@ def consume(Type, accepted=None, exact=False):
 	if type(token) is Type:
 		if accepted==None or (not exact and token.value in accepted or
 				 				  exact and token.value == accepted):
-			#print(token)
+			print(token)
 			consumed = token.value
 			token = next()
 			return True
@@ -186,43 +51,42 @@ def declare(name):
 ####################################
 ## the recursive code generator
 ####################################
-
-def Program():
+next = None
+def Program(file):
+	global next
 	global token
-	# eventually those things will go into a parser class
-	# if not for this, the parser thinks it's EOF
-	advance()
-	# if not for this, consume won't work at first
+	
+	next = Tokenizer(file)
 	token = next()
+	
 	prog = Statement()
 	return prog
 
 def Statement():
-	inst = []
-	if consume(NAME, "hi", exact=True):
-		
-		if consume(NAME, "def", exact=True):
-			if consume(NAME):
-				name = consumed
-				if name in Variables: Error(name, "already declared")
-				if consume(OP, "="):
-					declare(name)
-					inst = Expression()
-				elif consume(AUX, "("): Error("functions not implemented yet")
-			else: Error("no name after def")
-			
-		elif consume(NAME):
+	inst = []	
+	if consume(NAME, "def", exact=True):
+		if consume(NAME):
 			name = consumed
-			if name not in Variables: Error(name, "not declared yet")
-			elif consume(OP, "="):
+			if name in Variables: Error(name, "already declared")
+			if consume(OP, "="):
+				declare(name)
 				inst = Expression()
-				inst.append(OP_STORE)
-				inst.append(Variables[name])
 			elif consume(AUX, "("): Error("functions not implemented yet")
+		else: Error("no name after def")
 		
-		else:
+	elif consume(NAME):
+		name = consumed
+		if name not in Variables: Error(name, "not declared yet")
+		elif consume(OP, "="):
 			inst = Expression()
-		
+			inst.append(OP_STORE)
+			inst.append(Variables[name])
+		elif consume(AUX, "("): Error("functions not implemented yet")
+	
+	else:
+		inst = Expression()
+	
+	if inst:
 		inst2 = Statement()
 		inst.extend(inst2)
 	
@@ -235,7 +99,7 @@ def Expression():
 def OrExpression():
 	conditions = []
 	inst = AndExpression()
-	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance>, OP_POP
+	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, "or", exact=True):
 		if len(inst)==0: Error("or expression missing left operand")
@@ -353,10 +217,11 @@ def Primary():
 	
 	elif consume(AUX, "("):
 		inst = OrExpression()
-		if not consume(AUX, ")"): Error("closing parenthese ) missing")
+		if not consume(AUX, ")"):
+			Error("closing parenthesis ) missing")
 	
 	elif type(token) is not EOF: 
-		Error("illegal token : \""+str(token.value)+"\"")
+		Error(f'illegal token : \'{token.value}\'')
 		token = next()
 	return inst
 
@@ -368,11 +233,10 @@ def Primary():
 
 instructions = []
 with open(args.input,'r') as file:
-	instructions = Program()
-
+	instructions = Program(file)
+	
 print(errorCount, "errors")
-print("instructions", instructions)
-
-#if errorCount == 0 :
-with open(args.output,'wb') as file:
-	file.write(bytes(instructions))
+if errorCount == 0 :
+	print("instructions", instructions)
+	with open(args.output,'wb') as file:
+		file.write(bytes(instructions))
