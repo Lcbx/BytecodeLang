@@ -38,6 +38,6 @@ void Interpreter::execute_switch(){
 		OP_NEG_LABEL: op_neg(); DISPATCH()
 		OP_PRINT_LABEL: op_print(); DISPATCH()
 		OP_SHOW_STACK_LABEL: op_show_stack(); DISPATCH()
-		OP_END_LABEL: op_end();
+		OP_END_LABEL: op_end(); 
 	}
 }
