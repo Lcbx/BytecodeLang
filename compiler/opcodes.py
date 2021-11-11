@@ -76,7 +76,7 @@ if __name__ == '__main__':
 '''
 	# generates the computed goto in cpp for the virtual machine
 	# first part : header and declaration of labels
-	label_cpp = '''
+	switch_label_cpp = '''
 #include "common.h"
 #include "core.h"
 
@@ -85,28 +85,33 @@ void Interpreter::execute_switch(){
 	DEBUG(std::cout << "in execute\\n";)
 	static const void* labels[] = {'''
 	# the switch with all labels and calls to functions
-	switch_cpp = '''
+	switch_dispatch_cpp = '''
 	uchar opcode = 0;
 	#define DISPATCH() opcode = code.next(); goto *labels[opcode];
 	DISPATCH()
 	while(false){
 '''
+	# used to enumerate and concatenate generated lines
+	def enumeratedOpsToStr(fnc):
+		return ''.join( fnc(n, op) for n, op in enumerate(operations) )
 	
-	for n, op in enumerate(operations):
-		# opcode declaration
-		opcodes_cpp += f'const uchar { op.name } = { n };\n'
-		# label declaration
-		label_cpp   += f'&&{op.name}_LABEL, '
-		# label and function call
+	def fnc_opcodes(n, op):
+		return f'const uchar { op.name } = { n };\n'
+	
+	def fnc_labels(n, op):
+		return f'&&{op.name}_LABEL, '
+		
+	def fnc_switch(n, op):
 		dispatch = 'DISPATCH()' if op != operations[OP_END] else ''
-		switch_cpp  += f'\t\t{op.name}_LABEL: {op.name.lower()}(); {dispatch}\n'
-
-	# end those puny braces
-	label_cpp  += '};'
-	switch_cpp += '\t}\n}'
-
+		return f'\t\t{op.name}_LABEL: {op.name.lower()}(); {dispatch}\n'
+		
+	opcodes_cpp += enumeratedOpsToStr(fnc_opcodes)
 	verifyAndReplace(VM_OPCODES_FILE, opcodes_cpp)
-	verifyAndReplace(VM_SWITCH_FILE, label_cpp+switch_cpp)
+	
+	switch_label_cpp     += enumeratedOpsToStr(fnc_labels) + '};'
+	switch_dispatch_cpp  += enumeratedOpsToStr(fnc_switch) + '\t}\n}'
+	switch_cpp = switch_label_cpp + switch_dispatch_cpp
+	verifyAndReplace(VM_SWITCH_FILE, switch_cpp)
 
 	
 	

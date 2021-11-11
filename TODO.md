@@ -2,8 +2,7 @@
 This is where I put my pending tasks/ ideas. I could keep around what has been done as cossed-out text, so I can be reminded of the feature list, but it's quite simple right now so...
 
 ### FIX :
-- refactor opcodes.py : right now 2 files are generated at once, it's unreadable
-- still in opcode.py : add the option to go back to a big switch (like in early versions) instead of computed gotos
+- opcode.py : add the option to go back to a big switch (like in early versions) instead of computed gotos
 
 #### bugs
 - make more code tests to hunt for those !
