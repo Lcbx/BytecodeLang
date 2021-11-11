@@ -1,46 +1,47 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
-
-OP = namedtuple('OP', 'name bytesConsumed')
+@dataclass
+class OP:
+	name: 			str
+	bytesConsumed:	object # to accept None
 
 operations = [
+	OP('NO_OP',    0),
 
-OP('NO_OP',    0),
+	OP('OP_NONE',  0),
+	OP('OP_TRUE',  0),
+	OP('OP_FALSE', 0),
+	OP('OP_INT1',  1), #-128@127
+	OP('OP_INT2',  2), #-65536@65535
+	OP('OP_INT4',  4), #MININT@MAXINT
+	OP('OP_FLOAT', 4),
+	OP('OP_STRING', None),
 
-OP('OP_NONE',  0),
-OP('OP_TRUE',  0),
-OP('OP_FALSE', 0),
-OP('OP_INT1',  1), #-128@127
-OP('OP_INT2',  2), #-65536@65535
-OP('OP_INT4',  4), #MININT@MAXINT
-OP('OP_FLOAT', 4),
-OP('OP_STRING', None),
+	OP('OP_LOAD',  1),
+	OP('OP_STORE', 1),
+	OP('OP_POP',   0),
 
-OP('OP_LOAD',  1),
-OP('OP_STORE', 1),
-OP('OP_POP',   0),
+	OP('OP_JUMP', 2),
+	OP('OP_JUMP_IF', 2),
+	OP('OP_JUMP_IF_FALSE', 2),
 
-OP('OP_JUMP', 2),
-OP('OP_JUMP_IF', 2),
-OP('OP_JUMP_IF_FALSE', 2),
+	OP('OP_EQ',  0),
+	OP('OP_NEQ', 0),
+	OP('OP_LT',  0),
+	OP('OP_LTE', 0),
+	OP('OP_GT',  0),
+	OP('OP_GTE', 0),
 
-OP('OP_EQ',  0),
-OP('OP_NEQ', 0),
-OP('OP_LT',  0),
-OP('OP_LTE', 0),
-OP('OP_GT',  0),
-OP('OP_GTE', 0),
+	OP('OP_ADD', 0),
+	OP('OP_SUB', 0),
+	OP('OP_MUL', 0),
+	OP('OP_DIV', 0),
+	OP('OP_NEG', 0),
 
-OP('OP_ADD', 0),
-OP('OP_SUB', 0),
-OP('OP_MUL', 0),
-OP('OP_DIV', 0),
-OP('OP_NEG', 0),
+	OP('OP_PRINT', 0),
 
-OP('OP_PRINT', 0),
-
-OP('OP_SHOW_STACK', 0),
-OP('OP_END', 0),
+	OP('OP_SHOW_STACK', 0),
+	OP('OP_END', 0),
 ]
 
 for n, op in enumerate(operations):
