@@ -27,7 +27,7 @@ def consume(Type, accepted=None, exact=False):
 # a function to show parse errors
 errorCount = 0
 def Error(*msg):
-	print("Error line", line+1, ":", *msg)
+	print("Error", token.context, ":", *msg)
 	global errorCount
 	errorCount += 1
 
