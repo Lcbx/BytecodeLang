@@ -1,14 +1,14 @@
-hi hello2
-hi 13. +1020
-hi 3242 # hi
-hi "great"
-hi "\"I love RocknRoll\""
-hi -8*5.
-hi 8*3/2-5*2
-hi 5<4
-hi 17==17
-hi 5<4!=34
-hi 4<6 and 45==45 and 23==32
-hi 23==32 and 45==45 and 4<6
-hi 1024
+hello2
+13. +1020
+3242 # hi
+"great"
+"\"I love RocknRoll\""
+-8*5.
+8*3/2-5*2
+5<4
+17==17
+5<4!=34
+4<6 and 45==45 and 23==32
+23==32 and 45==45 and 4<6
+1024
 
