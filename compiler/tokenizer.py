@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from copy import copy
 
 @dataclass
 class TOKEN:
@@ -136,7 +137,7 @@ def Tokenizer(file):
 	# enrich token with context
 	def enrichedToken():
 		token = next()
-		token.context = ctx
+		token.context = copy(ctx)
 		return token
 	
 	return enrichedToken
