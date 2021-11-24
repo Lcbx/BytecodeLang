@@ -8,8 +8,8 @@ for n, item in enumerate(operations):
 
 import argparse
 commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-commandLineArgs.add_argument("-i", '--input', nargs = '?',  help='path and name of file', default = "../tests/test.ass" )
-commandLineArgs.add_argument("-o", '--output', nargs = '?', help='path and name of file (usual extension is .hex)')
+commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test.ass' )
+commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .hex)')
 args = commandLineArgs.parse_args()
 if not args.output:
 	args.output = args.input.replace('.txt', '.hex')
@@ -26,7 +26,7 @@ with open(args.input,'r') as file:
 		word = words[i]
 		opcodeAndbytesConsumed = opcodes.get(word)
 		if opcodeAndbytesConsumed == None:
-			print("unknown OP :", word)
+			print('unknown OP :', word)
 		else:
 			opcode, bytesConsumed = opcodeAndbytesConsumed
 			instructions.append( opcode )
@@ -34,11 +34,11 @@ with open(args.input,'r') as file:
 				i+=1
 				val = None
 				if bytesConsumed == 1:
-					fmt = "b"
+					fmt = 'b'
 				elif bytesConsumed == 2:
-					fmt="h"
+					fmt='h'
 				elif bytesConsumed == 4:
-					fmt = "i"
+					fmt = 'i'
 				
 				if 'FLOAT' in word:
 					fmt = 'f'

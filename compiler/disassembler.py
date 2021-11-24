@@ -7,22 +7,22 @@ for n, op in enumerate(operations):
 
 import argparse
 commandLineArgs = argparse.ArgumentParser(description='homemade disassembler for project scripting language')
-commandLineArgs.add_argument("-i", '--input', nargs = '?', default = "../tests/test.hex", help='path and name of file' )
-commandLineArgs.add_argument("-o", '--output', nargs = '?', help='path and name of file (usual extension is .ass)')
+commandLineArgs.add_argument('-i', '--input', nargs = '?', default = '../tests/test.hex', help='path and name of file' )
+commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .ass)')
 args = commandLineArgs.parse_args()
 if not args.output:
 	args.output = args.input.replace('.hex', '.ass')
 
 instructions = []
 with open(args.input,'rb') as file:
-	#print("NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.")
+	#print('NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.')
 	content = file.read()
 	i=0
 	while i<len(content):
 		opcode = content[i]
 		opName = opcodes[opcode].name
-		print(i, ":", end="\t")
-		val = ""
+		print(i, ':', end='\t')
+		val = ''
 		i+=1
 		if opcode == OP_STRING:
 				c = content[i]
@@ -36,15 +36,15 @@ with open(args.input,'rb') as file:
 			fmt = None
 			if bytesConsumed != 0:
 				if opcode == OP_FLOAT:
-					fmt = "f"
+					fmt = 'f'
 				elif bytesConsumed == 1:
-					fmt = "b"
+					fmt = 'b'
 				elif bytesConsumed == 2:
-					fmt="h"
+					fmt='h'
 				elif bytesConsumed == 4:
-					fmt = "i"
+					fmt = 'i'
 				else:
-					print("unknown number of bytes consumed :", bytesConsumed, " for op ", opName )
+					print('unknown number of bytes consumed :', bytesConsumed, ' for op ', opName )
 				val += str(struct.unpack(fmt, content[i:i+bytesConsumed])[0])
 				i += bytesConsumed
 		

@@ -33,7 +33,7 @@ class TokenizerContext:
 	
 	def readCharacter(self):
 		character = self.file.read(1)
-		#print(character, end="", flush=True)
+		#print(character, end='', flush=True)
 		return character
 
 	# reads the next char
@@ -58,24 +58,24 @@ def Tokenizer(file):
 			return EOF(f'line {ctx.line}')
 		
 		# non-relevant space
-		while ctx.current in " #\n":
+		while ctx.current in ' #\n':
 			# comments
-			if ctx.current == "#":
+			if ctx.current == '#':
 				while ctx.current != '\n':
 					advance()
 			advance()
 		
 		# auxiliary
-		if ctx.current in "\t[]{}()":
+		if ctx.current in '\t[]{}()':
 			aux = ctx.current
 			advance()
 			return AUX(aux)
 
 		# operators (there can be with a = behind)
-		elif ctx.current in "=!><-+/*":
+		elif ctx.current in '=!><-+/*':
 			op = None
 			advance()
-			if ctx.current=="=":
+			if ctx.current=='=':
 				op = ctx.last+ctx.current
 				advance()
 			else:
@@ -84,31 +84,31 @@ def Tokenizer(file):
 		
 		# name
 		elif ctx.current.isalpha():
-			n = ""
+			n = ''
 			while ctx.current.isalpha() or ctx.current.isdigit() :
 				n += ctx.current
 				advance()
 			return NAME(n)
 
 		# string
-		elif ctx.current == "\"":
-			s = ""
+		elif ctx.current == '\'':
+			s = ''
 			advance()
-			while ctx.current != "\"" or ctx.last == "\\" :
+			while ctx.current != '\'' or ctx.last == '\\' :
 				# escape character
-				if ctx.current == "\\":
+				if ctx.current == '\\':
 					advance()
 					# newline
-					if ctx.current == "n":
-						s += "\n"
+					if ctx.current == 'n':
+						s += '\n'
 					# string within string
 					else:
-						if ctx.current == "\"":
-							s += "\""
+						if ctx.current == '\'':
+							s += '\''
 						# right now we only support the above.
 						# the escapes are otherwise left as is
 						else:
-							s += ("\\" + ctx.current)
+							s += ('\\' + ctx.current)
 				else:
 					s += ctx.current
 				advance()
@@ -117,12 +117,12 @@ def Tokenizer(file):
 		
 		# number
 		elif ctx.current.isdigit():
-			n = ""
+			n = ''
 			while ctx.current.isdigit():
 				n += ctx.current
 				advance()
 			# if there is a dot, it's a float
-			if ctx.current == ".":
+			if ctx.current == '.':
 				n += ctx.current
 				advance()
 				while ctx.current.isdigit():
@@ -146,11 +146,11 @@ def Tokenizer(file):
 ####################################
 ## filework
 ####################################
-if __name__ == "__main__":
+if __name__ == '__main__':
 	import argparse
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-	commandLineArgs.add_argument("-i", '--input', nargs = '?',  help='path and name of file', default = "../tests/test.txt")
-	commandLineArgs.add_argument("-o", '--output', nargs = '?', help='path and name of file (usual extension is .tokens)' )
+	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test.txt')
+	commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .tokens)' )
 	args = commandLineArgs.parse_args()
 	if not args.output:
 		args.output = args.input.replace('.txt', '.tokens')
