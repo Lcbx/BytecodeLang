@@ -1,0 +1,6 @@
+
+#pragma once
+#include "common.h"
+
+// generated header, see opcodes.py
+__OPCODES__

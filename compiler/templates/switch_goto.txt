@@ -1,0 +1,14 @@
+
+#include "common.h"
+#include "core.h"
+
+// generated file, see opcodes.py
+void Interpreter::execute_switch(){
+	DEBUG(std::cout << "in execute\\n";)
+	static const void* labels[] = {__LABELS__};
+	uchar opcode = 0;
+	#define DISPATCH() opcode = code.next(); goto *labels[opcode];
+	DISPATCH()
+	while(false){
+__DISPATCH__	}
+}

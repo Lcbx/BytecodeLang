@@ -251,11 +251,16 @@ else push(a.type operator b.type);				\
 
 int main(int argc, char* argv[]) {
 	Interpreter i;
-	if(argc==1){
-		i.execute("../tests/test.hex");
+	try{
+		if(argc==1){
+			i.execute("../tests/test.hex");
+		}
+		else if(argc == 2){
+			i.execute(argv[1]);
+		}
 	}
-	else if(argc == 2){
-		i.execute(argv[1]);
+	catch(std::exception ex) {
+		DEBUG(std::cout << "ex" << std::endl;)
 	}
 	DEBUG(
 		i.op_show_stack();
