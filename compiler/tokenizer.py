@@ -148,12 +148,13 @@ def Tokenizer(file):
 ####################################
 if __name__ == '__main__':
 	import argparse
+	from extensions import DEFAULT_CODE_EXTENSION, DEFAULT_TOKENS_EXTENSION
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test.txt')
-	commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .tokens)' )
+	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test' + DEFAULT_CODE_EXTENSION)
+	commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of file (usual extension is {DEFAULT_TOKENS_EXTENSION})' )
 	args = commandLineArgs.parse_args()
 	if not args.output:
-		args.output = args.input.replace('.txt', '.tokens')
+		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_TOKENS_EXTENSION)
 
 	instructions = []
 	with open(args.input,'r') as file:

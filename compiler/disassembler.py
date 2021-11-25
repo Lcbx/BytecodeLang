@@ -6,12 +6,13 @@ for n, op in enumerate(operations):
 	opcodes[n] = op
 
 import argparse
+from extensions import DEFAULT_ASSEMBLY_EXTENSION, DEFAULT_COMPILED_EXTENSION
 commandLineArgs = argparse.ArgumentParser(description='homemade disassembler for project scripting language')
-commandLineArgs.add_argument('-i', '--input', nargs = '?', default = '../tests/test.hex', help='path and name of file' )
-commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .ass)')
+commandLineArgs.add_argument('-i', '--input', nargs = '?', default = '../tests/test' + DEFAULT_COMPILED_EXTENSION, help='path and name of file' )
+commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of file (usual extension is {DEFAULT_ASSEMBLY_EXTENSION})')
 args = commandLineArgs.parse_args()
 if not args.output:
-	args.output = args.input.replace('.hex', '.ass')
+	args.output = args.input.replace(DEFAULT_COMPILED_EXTENSION, DEFAULT_ASSEMBLY_EXTENSION)
 
 instructions = []
 with open(args.input,'rb') as file:

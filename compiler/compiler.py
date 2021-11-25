@@ -221,12 +221,13 @@ def Primary():
 ####################################
 if __name__ == '__main__':
 	import argparse
+	from extensions import *
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test.txt' )
-	commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .hex)')
+	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help=f'path and name of code file', default = '../tests/test' + DEFAULT_CODE_EXTENSION )
+	commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of compiled file (usual extension is {DEFAULT_COMPILED_EXTENSION})')
 	args = commandLineArgs.parse_args()
 	if not args.output:
-		args.output = args.input.replace('.txt', '.hex')
+		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION)
 
 	instructions = []
 	with open(args.input,'r') as file:
