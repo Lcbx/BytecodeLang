@@ -12,10 +12,10 @@ class ByteCode {
 public:
 
 	Int size = 0;
-	uchar* bytes;
+	Byte* bytes;
 	Int pointer = 0;
 	ByteCode(){}
-	ByteCode(uchar* data, Int length) : bytes(data), size(length) {
+	ByteCode(Byte* data, Int length) : bytes(data), size(length) {
 		DEBUG(
 			std::cout<< "size " << size << "\n";
 			for(int i=0; i<size; i++)
@@ -24,8 +24,8 @@ public:
 		)
 	}
 
-	uchar next() {
-		uchar ret;
+	Byte next() {
+		Byte ret;
 		if(pointer<size){
 			ret = bytes[pointer];
 			DEBUG(
@@ -46,8 +46,8 @@ public:
 		pointer += sizeof(T);
 		return result;
 	}
-	uchar current() { return bytes[pointer-1]; }
-	uchar peek() { return bytes[pointer]; }
+	Byte current() { return bytes[pointer-1]; }
+	Byte peek() { return bytes[pointer]; }
 	inline void reset() { pointer = 0; }
 };
 
@@ -74,7 +74,7 @@ public:
 	}
 	void execute(String fileName) {
 		std::ifstream in(fileName, std::ios::binary);
-		std::vector<uchar> buffer((
+		std::vector<Byte> buffer((
 			std::istreambuf_iterator<char>(in)),
 			(std::istreambuf_iterator<char>()));
 		buffer.shrink_to_fit();
@@ -91,22 +91,22 @@ public:
 		}
 
 	inline void op_none(){
-		push( None_ );
+		push( None );
 		DEBUG(std::cout << "none " << std::endl;)
 	}
 
 	inline void op_true(){
-		push( True_ );
+		push( True );
 		DEBUG(std::cout << "true " << std::endl;)
 	}
 
 	inline void op_false(){
-		push( False_ );
+		push( False );
 		DEBUG(std::cout << "false " << std::endl;)
 	}
 
 	inline void op_int1(){
-		push((Int)code.read<char>());
+		push((Int)code.read<Byte>());
 		DEBUG(std::cout << "int1 " << top().toString() << std::endl;)
 	}
 	inline void op_int2(){
@@ -126,7 +126,7 @@ public:
 	inline void op_string(){
 		String* s = new String();
 		DEBUG(std::cout << "string ";)
-		for (char c = code.read<uchar>(); c != 0; c = code.read<uchar>()) {
+		for (Byte c = code.read<Byte>(); c != 0; c = code.read<Byte>()) {
 			*s += c;
 			DEBUG(std::cout << c << std::flush;)
 		}
@@ -136,16 +136,16 @@ public:
 
 	
 	inline void op_load(){
-		uchar address = code.read<uchar>();
+		Byte address = code.read<Byte>();
 		Variable var = stack[address];
 		// compiler says no copy construction #WorkAroundFTW
-		push(None_);
+		push(None);
 		Variable::copy(var, top());
 		DEBUG(std::cout << "LOAD " << +address << " : " << var.toString() << std::endl;)
 	}
 
 	inline void op_store(){
-		uchar address = code.read<uchar>();
+		Byte address = code.read<Byte>();
 		if (address!=stack.size()-1){
 			Variable var = pop();
 			stack[address] = var;
@@ -169,7 +169,7 @@ public:
 		Variable condition = top();
 		Short distance = code.read<Short>();
 		DEBUG(std::cout << "jump if true => " << code.pointer+distance << std::endl;)
-		if (condition.type == True_) {
+		if (condition.type == True) {
 			code.pointer += distance;
 		}
 	}
@@ -177,36 +177,37 @@ public:
 		Variable condition = top();
 		Short distance = code.read<Short>();
 		DEBUG(std::cout << "jump if false => " << code.pointer+distance << std::endl;)
-		if (condition.type != True_) {
+		if (condition.type != True) {
 			code.pointer += distance;
 		}
 	}
-#define BINARY_IMPL(operator, other) \
-Variable b = pop();					\
-Variable a = pop();					\
-if (a.type == Int_ && b.type == Int_) 						\
-	push(a.content.asInt operator b.content.asInt); 		\
-else if(a.type == Float_ && b.type == Float_)				\
-	push(a.content.asFloat operator b.content.asFloat); 	\
-else if(a.type == Float_ && b.type == Int_)					\
-	push(a.content.asFloat operator (Float)b.content.asInt);\
-else if(a.type == Int_ && b.type == Float_)					\
-	push((Float)a.content.asInt operator b.content.asFloat);\
-else other													\
+
+#define BINARY_IMPL(operator, other) 								\
+Variable b = pop();													\
+Variable a = pop();													\
+if (a.type == IntType && b.type == IntType) 						\
+	push(a.content.asInt operator b.content.asInt); 				\
+else if(a.type == FloatType && b.type == FloatType)					\
+	push(a.content.asFloat operator b.content.asFloat); 			\
+else if(a.type == FloatType && b.type == IntType)					\
+	push(a.content.asFloat operator (Float)b.content.asInt);		\
+else if(a.type == IntType && b.type == FloatType)					\
+	push((Float)a.content.asInt operator b.content.asFloat);		\
+other															\
 DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
 
 #define BINARY(operator) {	\
-BINARY_IMPL(operator, {})	\
+BINARY_IMPL(operator, )	\
 }
 
-#define BINARY_EXTENDED(operator) 				\
-BINARY(operator, 								\
-if (a.type == String_ && b.type == String_) 	\
-	push(a.toString() operator b.toString());	\
-else push(a.type operator b.type);				\
+#define BINARY_EXTENDED(operator) 						\
+BINARY(operator, 										\
+else if (a.type == StringType && b.type == StringType) 	\
+	push(a.toString() operator b.toString());			\
+else push(a.type operator b.type);						\
 )
 	
-	inline void op_eq() BINARY_EXTENDED(==)
+	inline void op_eq()  BINARY_EXTENDED(==)
 	inline void op_neq() BINARY_EXTENDED(!=)
 
 	inline void op_lt()  BINARY_EXTENDED(<)
@@ -222,10 +223,10 @@ else push(a.type operator b.type);				\
 	
 	inline void op_neg(){
 		Variable var = pop();
-		if (var.type == Int_) push(-var.content.asInt);
-		else if (var.type == Float_) push(-var.content.asFloat);
-		else if (var.type == True_) push(False_);
-		else if (var.type == False_) push(True_);
+		if (var.type == IntType)		push(-var.content.asInt);
+		else if (var.type == FloatType) push(-var.content.asFloat);
+		else if (var.type == True)		push(False);
+		else if (var.type == False)		push(True);
 		DEBUG(std::cout << "NEG " << var.toString() << " => " << top().toString() << std::endl;)
 	}
 	

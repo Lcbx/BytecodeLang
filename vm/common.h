@@ -5,7 +5,7 @@
 
 
 typedef bool Bool;
-typedef unsigned char uchar;
+typedef unsigned char Byte;
 typedef std::int16_t Short;
 typedef std::int32_t Int;
 typedef float Float;

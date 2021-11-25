@@ -2,17 +2,14 @@
 
 
 enum Type {
-	None_,
+	None,
 
-	False_,
-	True_,
+	False,
+	True,
 
-//	Error_,
-//	Done_,
-
-	Int_,
-	Float_,
-	String_,
+	IntType,
+	FloatType,
+	StringType,
 };
 
 const String Type_string[] = {
@@ -42,42 +39,38 @@ public:
 class Variable {
 public:
 
-	Type type = None_;
+	Type type = None;
 	Value content;
 
 	Variable() {}
 	Variable(Type t){ 	type = t; }
-	Variable(Bool t){ 	type = t ? True_ : False_; }
-	Variable(Int i){ 	content.asInt = i; type = Int_; }
-	Variable(Float f){ 	content.asFloat = f; type = Float_; }
-	Variable(String s){ content.asString = new String(s); type = String_; }
-	Variable(String* s){content.asString = s; type = String_; }
+	Variable(Bool t){ 	type = t ? True : False; }
+	Variable(Int i){ 	content.asInt = i; type = IntType; }
+	Variable(Float f){ 	content.asFloat = f; type = FloatType; }
+	Variable(String s){ content.asString = new String(s); type = StringType; }
+	Variable(String* s){content.asString = s; type = StringType; }
 	Variable(const Variable& v) { copy(v, *this); }
 
 
 	~Variable() {
 		//DEBUG(std::cout << "DEATH of a " << Type_string[type] << " : "<< toString() << "\n";)
-		if (type == String_ && content.asString!=nullptr) delete content.asString;
+		if (type == StringType && content.asString!=nullptr) delete content.asString;
 	}
 
 
 	String toString() const {
 		switch (type) {
-		case None_:
+		case None:
 			return "None";
-		case False_:
+		case False:
 			return "False";
-		case True_:
+		case True:
 			return "True";
-//		case Error_:
-//			return *value.asString;
-//		case Done_:
-//			return "Done";
-		case Int_:
+		case IntType:
 			return std::to_string(content.asInt);
-		case Float_:
+		case FloatType:
 			return std::to_string(content.asFloat );
-		case String_:
+		case StringType:
 			return *content.asString;
 		default:
 			return "<no representation>";
@@ -86,7 +79,7 @@ public:
 
 	static void copy(const Variable& from, Variable& to) {
 		to.type = from.type;
-		if (from.type == String_){
+		if (from.type == StringType){
 			to.content.asString = new String(*from.content.asString);
 		}
 		else to.content = from.content;
