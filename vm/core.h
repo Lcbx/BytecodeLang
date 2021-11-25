@@ -181,7 +181,7 @@ public:
 			code.pointer += distance;
 		}
 	}
-#define BINARY_IMPL(operator) \
+#define BINARY_IMPL(operator, other) \
 Variable b = pop();					\
 Variable a = pop();					\
 if (a.type == Int_ && b.type == Int_) 						\
@@ -192,11 +192,11 @@ else if(a.type == Float_ && b.type == Int_)					\
 	push(a.content.asFloat operator (Float)b.content.asInt);\
 else if(a.type == Int_ && b.type == Float_)					\
 	push((Float)a.content.asInt operator b.content.asFloat);\
-
-#define BINARY(operator, other) {	\
-BINARY_IMPL(operator)				\
-else other							\
+else other													\
 DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
+
+#define BINARY(operator) {	\
+BINARY_IMPL(operator, {})	\
 }
 
 #define BINARY_EXTENDED(operator) 				\
@@ -214,9 +214,9 @@ else push(a.type operator b.type);				\
 	inline void op_gt()  BINARY_EXTENDED(>)
 	inline void op_gte() BINARY_EXTENDED(>=)
 
-	inline void op_sub() BINARY(-, {})
-	inline void op_mul() BINARY(*, {})
-	inline void op_div() BINARY(/, {})
+	inline void op_sub() BINARY(-)
+	inline void op_mul() BINARY(*)
+	inline void op_div() BINARY(/)
 
 	inline void op_add() BINARY_EXTENDED(+)
 	
