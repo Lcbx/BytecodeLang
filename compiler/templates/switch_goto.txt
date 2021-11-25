@@ -6,7 +6,7 @@
 void Interpreter::execute_switch(){
 	DEBUG(std::cout << "in execute\\n";)
 	static const void* labels[] = {__LABELS__};
-	uchar opcode = 0;
+	Byte opcode = 0;
 	#define DISPATCH() opcode = code.next(); goto *labels[opcode];
 	DISPATCH()
 	while(false){

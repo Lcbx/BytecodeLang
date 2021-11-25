@@ -76,7 +76,7 @@ if __name__ == '__main__':
 		return ''.join( fnc(n, op) for n, op in enumerate(operations) )
 	
 	opcodes_cpp = readFile('./templates/opcodes.txt')
-	fnc_opcodes = lambda n, op: f'const uchar { op.name } = { n };\n'
+	fnc_opcodes = lambda n, op: f'const Byte { op.name } = { n };\n'
 	opcodes_cpp = opcodes_cpp.replace('__OPCODES__', enumeratedOpsToStr(fnc_opcodes))
 	verifyAndReplace(VM_OPCODES_FILE, opcodes_cpp)
 	

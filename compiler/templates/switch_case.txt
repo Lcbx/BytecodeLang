@@ -5,7 +5,7 @@
 // generated file, see opcodes.py
 void Interpreter::execute_switch(){
 	DEBUG(std::cout << "in execute\n";)
-	uchar opcode = 0;
+	Byte opcode = 0;
 	while(opcode != OP_END){
 		opcode = code.next();
 		switch(opcode){
