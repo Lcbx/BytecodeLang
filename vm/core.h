@@ -193,7 +193,7 @@ else if(a.type == FloatType && b.type == IntType)					\
 	push(a.content.asFloat operator (Float)b.content.asInt);		\
 else if(a.type == IntType && b.type == FloatType)					\
 	push((Float)a.content.asInt operator b.content.asFloat);		\
-other															\
+other																\
 DEBUG(std::cout << a.toString() << #operator << b.toString() << " => " << top().toString() << std::endl;) \
 
 #define BINARY(operator) {	\
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	catch(std::exception ex) {
-		DEBUG(std::cout << "ex" << std::endl;)
+		DEBUG(std::cerr << "ex"  << ex.what() << std::endl;)
 	}
 	DEBUG(
 		i.op_show_stack();
