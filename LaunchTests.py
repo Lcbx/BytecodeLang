@@ -63,13 +63,13 @@ def listFiles(extensionsToSearch):
 	return [os.path.relpath(filepath) for filepath in res]
 
 def clean():
-	for file in listFiles(extensionsToClean):
-		vprint(f'{BOLD}cleaning {file}{ENDC}')
-		os.remove(file)
+	for filePath in listFiles(extensionsToClean):
+		vprint(f'{BOLD}cleaning {UNDERLINE}{filePath}{ENDC}')
+		os.remove(filePath)
 
 
 def generateCodeTestResults(filePath):
-	vprint( f'{BOLD}testing {filePath}{ENDC}')
+	vprint( f'{BOLD}testing {UNDERLINE}{filePath}{ENDC}')
 	result = Document()
 	
 	def prepString(bytes):
@@ -106,7 +106,7 @@ def parseExpectedResults(filePath):
 		vprint( f'{BOLD}expected parsed :{ENDC}{ENDLINE}{result}')
 		return result
 	else:
-		print(f'{BOLD}no expected results for {filePath}{ENDC}')
+		print(f'{BOLD}no expected results for {UNDERLINE}{filePath}{ENDC}')
 		vprint(f'\t expected : {expectedfile}')
 
 def writeFile(filePath, content):
