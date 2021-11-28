@@ -13,8 +13,7 @@ SECTION_SPLITTER = '__SECTION__'
 # trick for verbosity
 vprint = print if VERBOSE else lambda a,*b:None
 
-# colors fromm blender build scripts
-os.system("color")
+# fomrats from blender build scripts
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
 OKCYAN = '\033[96m'
@@ -106,7 +105,7 @@ def parseExpectedResults(filePath):
 		vprint( f'{BOLD}parsed :{ENDC}{ENDLINE}{result}')
 		return result
 	else:
-		print(f'{BOLD}no expected results for{ENDC} {UNDERLINE}{filePath}{ENDC}')
+		print(f'{BOLD}expected results {WARNING}missing{ENDC} : {UNDERLINE}{filePath}{ENDC}')
 		vprint(f'\t expected : {expectedfile}')
 
 def writeFile(filePath, content):
@@ -175,13 +174,13 @@ if __name__ == '__main__':
 							if len(resultSplit) != len(expectedSplit) or any( res != exp for res,  exp in zip(resultSplit, expectedSplit)):
 								failed = True
 								resultPresentation =  quote(result[section]) if result[section] else f'{WARNING}section was empty !{ENDC}'
-								print(f'{BOLD}unexpected result in {UNDERLINE}{file}:{section}{ENDC}{ENDLINE}{resultPresentation}')
-								vprint(f'{BOLD}expected :{ENDC}{ENDLINE}{quote(expected[section])}')
+								print(f'{BOLD}result was {WARNING}unexpected{ENDC} : {UNDERLINE}{file}:{section}{ENDC}{ENDLINE}{resultPresentation}')
+								print(f'{BOLD}expected :{ENDC}{ENDLINE}{quote(expected[section])}')
 								if VERBOSE:
 									diff = HtmlDiff()
-									htmlText = diff.make_file(result[section].splitlines(), expected[section].splitlines())
+									htmlText = diff.make_file(resultSplit, expectedSplit)
 									writeFile(file.replace(compExt.DEFAULT_CODE_EXTENSION, '_fail.html'), htmlText)
-						else: vprint(f'results missing section {section}')
+						else: print(f'{BOLD}{WARNING}results missing section {section}{ENDC}')
 					
 					sectionsMissingFromExpected = [section for section in result.keys() if section not in expected]
 					if sectionsMissingFromExpected:
