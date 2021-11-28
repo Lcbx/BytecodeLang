@@ -2,17 +2,17 @@
 This is where I put my pending tasks/ ideas. I could keep around what has been done as cossed-out text, so I can be reminded of the feature list, but it's quite simple right now so...
 
 ### FIX :
-- opcode.py : add the option to go back to a big switch (like in early versions) instead of computed gotos
+- add more test cases
 
 #### bugs
-- make more code tests to hunt for those !
+- vm_simulation crash on wrong filepath
 
 #### compiler
-- make better variable assignation and loading
-- support late binding of variables and functions declarations
 - add more control structures (if, while, for, etc) (WIP)
+- make better variable assignation and loading
+- support late binding of variables 
+- support functions
 - make compiling smarter and optimized
-- replace " with ‘ ?
 
 #### language design
 - support functions
