@@ -10,9 +10,14 @@ from extensions import DEFAULT_ASSEMBLY_EXTENSION, DEFAULT_COMPILED_EXTENSION
 commandLineArgs = argparse.ArgumentParser(description='homemade disassembler for project scripting language')
 commandLineArgs.add_argument('-i', '--input', nargs = '?', default = '../tests/test' + DEFAULT_COMPILED_EXTENSION, help='path and name of file' )
 commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of file (usual extension is {DEFAULT_ASSEMBLY_EXTENSION})')
+commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs' )
 args = commandLineArgs.parse_args()
+
 if not args.output:
 	args.output = args.input.replace(DEFAULT_COMPILED_EXTENSION, DEFAULT_ASSEMBLY_EXTENSION)
+
+# trick for verbosity
+vprint = print if args.verbose else lambda a,b:None
 
 instructions = []
 with open(args.input,'rb') as file:
@@ -22,7 +27,7 @@ with open(args.input,'rb') as file:
 	while i<len(content):
 		opcode = content[i]
 		opName = opcodes[opcode].name
-		print(i, ':', end='\t')
+		vprint(i, ':', end='\t')
 		val = ''
 		i+=1
 		if opcode == OP_STRING:
@@ -50,7 +55,7 @@ with open(args.input,'rb') as file:
 				i += bytesConsumed
 		
 		instruction = f'{opName} {val}'
-		print(instruction)
+		vprint(instruction)
 		instructions.append(instruction)
 
 if len(instructions)!=0:

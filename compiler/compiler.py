@@ -221,20 +221,25 @@ def Primary():
 ####################################
 if __name__ == '__main__':
 	import argparse
-	from extensions import *
+	from extensions import DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
 	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help=f'path and name of code file', default = '../tests/test' + DEFAULT_CODE_EXTENSION )
 	commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of compiled file (usual extension is {DEFAULT_COMPILED_EXTENSION})')
+	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs' )
 	args = commandLineArgs.parse_args()
+	
 	if not args.output:
 		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION)
-
+	
+	# trick for verbosity
+	vprint = print if args.verbose else lambda a,b:None
+	
 	instructions = []
 	with open(args.input,'r') as file:
 		instructions = Program(file)
 		
 	print(errorCount, 'errors')
 	if errorCount == 0 :
-		print('instructions', instructions)
+		vprint('instructions', instructions)
 		with open(args.output,'wb') as file:
 			file.write(bytes(instructions))

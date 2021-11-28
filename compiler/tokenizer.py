@@ -149,24 +149,29 @@ def Tokenizer(file):
 if __name__ == '__main__':
 	import argparse
 	from extensions import DEFAULT_CODE_EXTENSION, DEFAULT_TOKENS_EXTENSION
+
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
 	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test' + DEFAULT_CODE_EXTENSION)
 	commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of file (usual extension is {DEFAULT_TOKENS_EXTENSION})' )
+	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs')
 	args = commandLineArgs.parse_args()
+	
 	if not args.output:
 		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_TOKENS_EXTENSION)
+		
+	# trick for verbosity
+	vprint = print if args.verbose else lambda a,b:None
 
-	instructions = []
+	results = []
 	with open(args.input,'r') as file:
 		next = Tokenizer(file)
-		results = []
 		token = None
 		while type(token) is not EOF:
 			token = next()
 			results.append(str(token))
-		
-		print(results)
-		with open(args.output,'w') as file:
-			file.write('\n'.join(results))
+	
+	vprint(results)
+	with open(args.output,'w') as file:
+		file.write('\n'.join(results))
 		
 		
