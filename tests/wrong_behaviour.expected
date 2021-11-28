@@ -1,0 +1,15 @@
+compile_Out:
+Error line 1, column 1 : illegal token : '"'
+1 errors
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+
+__SECTION__
+simulation_Err:
+Traceback (most recent call last):
+  File "C:\Users\lucco\Desktop\tests\Lang\compiler\vm_simulator.py", line 22, in <module>
+    opName = opcodes[opcode].name
+KeyError: 52

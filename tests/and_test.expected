@@ -1,0 +1,17 @@
+compile_Out:
+Error line 7, column 18 : illegal token : '"'
+Error line 7, column 18 : and expression missing right operand
+Error line 7, column 18 : illegal token : '"'
+3 errors
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+
+__SECTION__
+simulation_Err:
+Traceback (most recent call last):
+  File "C:\Users\lucco\Desktop\tests\Lang\compiler\vm_simulator.py", line 22, in <module>
+    opName = opcodes[opcode].name
+KeyError: 49
