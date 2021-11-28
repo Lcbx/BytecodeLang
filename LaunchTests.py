@@ -64,12 +64,12 @@ def listFiles(extensionsToSearch):
 
 def clean():
 	for filePath in listFiles(extensionsToClean):
-		vprint(f'{BOLD}cleaning {UNDERLINE}{filePath}{ENDC}')
+		vprint(f'{BOLD}cleaning{ENDC} {UNDERLINE}{filePath}{ENDC}')
 		os.remove(filePath)
 
 
 def generateCodeTestResults(filePath):
-	vprint( f'{BOLD}testing {UNDERLINE}{filePath}{ENDC}')
+	vprint( f'{BOLD}testing{ENDC} {UNDERLINE}{filePath}{ENDC}')
 	result = Document()
 	
 	def prepString(bytes):
@@ -103,10 +103,10 @@ def parseExpectedResults(filePath):
 		for section in readFile(expectedfile).split(SECTION_SPLITTER):
 			sectionName, _, sectionContent = section.partition(f':{ENDLINE}')
 			result[sectionName.strip()] = sectionContent.strip()
-		vprint( f'{BOLD}expected parsed :{ENDC}{ENDLINE}{result}')
+		vprint( f'{BOLD}parsed :{ENDC}{ENDLINE}{result}')
 		return result
 	else:
-		print(f'{BOLD}no expected results for {UNDERLINE}{filePath}{ENDC}')
+		print(f'{BOLD}no expected results for{ENDC} {UNDERLINE}{filePath}{ENDC}')
 		vprint(f'\t expected : {expectedfile}')
 
 def writeFile(filePath, content):
