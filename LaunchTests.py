@@ -42,20 +42,26 @@ class Document(dict):
 		return ENDLINE.join( [ f'{section}:{ENDLINE + quote(content)if content else EMPTY_STR}' for section, content in self.items()] )
 
 
-# generates a list of files in test folder with extensionsToSearch
+# generates a list of files in test folder that match extensionsToSearch
 def listFiles(extensionsToSearch):
-	return ([os.path.join(root, file)
-			for root, dirs, files in os.walk(TEST_PATH)
-				for file in files
-					if any(
-						file.endswith(ext) for ext in extensionsToSearch
-					)
-			] if os.path.isdir(TEST_PATH) else
-			[ file for extension in extensionsToSearch
-				if os.path.exists(
-					file := TEST_PATH.replace(compExt.DEFAULT_CODE_EXTENSION, extension)
-				)])
-	
+	res = None
+	# if TEST_PATH is folder, find all files with extensions within
+	if os.path.isdir(TEST_PATH):
+		res = [ os.path.join(root, file)
+				for root, dirs, files in os.walk(TEST_PATH)
+					for file in files
+						if any(	file.endswith(ext) for ext in extensionsToSearch )
+				]
+	# if TEST_PATH is file, find files with same name and different extensions
+	else:
+		[ file for extension in extensionsToSearch
+			if os.path.exists(
+				file := TEST_PATH.replace(compExt.DEFAULT_CODE_EXTENSION, extension)
+		)]
+		
+	# avoid mismatches because you used a different way of writing path of file
+	return [os.path.relpath(filepath) for filepath in res]
+
 def clean():
 	for file in listFiles(extensionsToClean):
 		vprint(f'{BOLD}cleaning {file}{ENDC}')
@@ -71,13 +77,12 @@ def generateCodeTestResults(filePath):
 		if res: return res.strip()
 		return ""
 	
-	
-	
 	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-i', filePath], capture_output=True)
 	result.compile_Out = prepString(compile.stdout)
 	result.compile_Err = prepString(compile.stderr)
 	
-	simulation = runCommandLine([PythonExePath, './compiler/vm_simulator.py', '-i', filePath], capture_output=True)
+	simfilePath = filePath.replace(compExt.DEFAULT_CODE_EXTENSION, compExt.DEFAULT_COMPILED_EXTENSION)
+	simulation = runCommandLine([PythonExePath, './compiler/vm_simulator.py', '-i', simfilePath], capture_output=True)
 	result.simulation_Out = prepString(simulation.stdout)
 	result.simulation_Err = prepString(simulation.stderr)
 	
@@ -98,7 +103,7 @@ def parseExpectedResults(filePath):
 		for section in readFile(expectedfile).split(SECTION_SPLITTER):
 			sectionName, _, sectionContent = section.partition(f':{ENDLINE}')
 			result[sectionName.strip()] = sectionContent.strip()
-		vprint( f'{BOLD}parsed :{ENDC}{ENDLINE}{result}')
+		vprint( f'{BOLD}expected parsed :{ENDC}{ENDLINE}{result}')
 		return result
 	else:
 		print(f'{BOLD}no expected results for {filePath}{ENDC}')
@@ -170,7 +175,7 @@ if __name__ == '__main__':
 							if len(resultSplit) != len(expectedSplit) or any( res != exp for res,  exp in zip(resultSplit, expectedSplit)):
 								failed = True
 								resultPresentation =  quote(result[section]) if result[section] else f'{WARNING}section was empty !{ENDC}'
-								print(f'{BOLD}unexpected result in {file}:{section}{ENDC}{ENDLINE}{resultPresentation}')
+								print(f'{BOLD}unexpected result in {UNDERLINE}{file}:{section}{ENDC}{ENDLINE}{resultPresentation}')
 								vprint(f'{BOLD}expected :{ENDC}{ENDLINE}{quote(expected[section])}')
 								if VERBOSE:
 									diff = HtmlDiff()

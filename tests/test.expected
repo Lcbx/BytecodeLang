@@ -5,10 +5,12 @@ compile_Err:
 
 __SECTION__
 simulation_Out:
-
+0 :	OP_INT1 => 34 --
+2 :	OP_FLOAT => 34.5 --
+7 :	OP_LOAD => (0, 34) --
+9 :	OP_LOAD => (1, 34.5) --
+11 :	OP_FLOAT => 0.5 --
+16 :	OP_SUB => 34.0 --
+17 :	OP_EQ => True --
 __SECTION__
 simulation_Err:
-Traceback (most recent call last):
-  File "C:\Users\lucco\Desktop\tests\Lang\compiler\vm_simulator.py", line 22, in <module>
-    opName = opcodes[opcode].name
-KeyError: 100
