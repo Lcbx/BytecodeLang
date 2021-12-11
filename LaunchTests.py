@@ -13,7 +13,7 @@ SECTION_SPLITTER = '__SECTION__'
 # trick for verbosity
 vprint = print if VERBOSE else lambda a,*b:None
 
-# fomrats from blender build scripts
+# formats from blender build scripts
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
 OKCYAN = '\033[96m'

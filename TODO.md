@@ -53,6 +53,8 @@ let obj = A()
 D(obj, e) # uses b c computed in A()
 ```
 - make order of parameters not syntaxically relevant (+ allow unused / redondant parmeters ?)
+- allow closures ? ( = hidden function states ) + if not still, allow using function references but disallow returning a function itself
+- make a Callable type or support function as a native type?
 - use an async keyword where a function call is started on another thread,Task-like (+ use an await keyword to get their results ?)
 
 ### technical ideas

@@ -1,6 +1,6 @@
 ## What's this ?
 BytecodeLang (name is temporary) is a language i've been working on and off since mid-2018.  
-It consists of a **stack-based VM in c++** and a **compiler in Python** (with no external libraries in either case); a few tools (an [assembly-like compiler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/assembly_compiler.py), a [disassembler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/disassembler.py) and a [vm simulator](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/vm_simulator.py)) are developped concurrently to help debugging.  
+It consists of a **stack-based VM in c++** and a **compiler in Python** (with no external libraries in either case); a few tools (an [assembly-like compiler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/assembly_compiler.py), a [disassembler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/disassembler.py), a [vm simulator](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/vm_simulator.py), and a [test laucher](https://github.com/Lcbx/BytecodeLang/blob/master/LaunchTests.py)) are developped concurrently to help debugging.  
 Right now it is at the "slightly smart calculator" stage.
 
 *note :*  to ensure that the bytecodes match between the compiler and vm, i use a [script](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py) that generates a [c++ header file](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h) based on the compiler definitions. In fact now it also generates the [dispatch table](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp) for the interpreter.
@@ -11,7 +11,7 @@ I chose c++ for the vm for its performance, readability (less verbose than c) an
 However, since i intend programs to be shipped as bundles of bytecode, the compiler does not have to be that performant. I chose Python because it is an experimentation-friendly, high-level language that i <3.
 
 ## Where is it going ?
-The eventual goal is to make a heavily python-inspired with a particular emphasis on with a duck-type-ness (on top of syntactically meaningfull indentation, native lists and dictionnaries, range-based for), and manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (from whom I borrow quite heavily otherwise).
+The eventual goal is to make a heavily python-inspired with a particular emphasis on duck-type-ness (on top of syntactically meaningfull indentation, native lists and dictionnaries, range-based for), and manual memory management. It would be similar in principle and implementation but hopefully simpler and less verbose than [munificient's wren](https://github.com/wren-lang/wren) (from whom I borrow quite heavily otherwise).
 
  ### Example (not actual state of language)
 ``` CoffeeScript
