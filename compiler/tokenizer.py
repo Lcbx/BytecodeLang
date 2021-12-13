@@ -169,10 +169,9 @@ if __name__ == '__main__':
 		token = None
 		while type(token) is not EOF:
 			token = next()
-			print(token)
+			vprint(token)
 			results.append(str(token))
 	
-	vprint(results)
 	with open(args.output,'w') as file:
 		file.write('\n'.join(results))
 		
