@@ -53,17 +53,18 @@ def Tokenizer(file):
 	def next():
 		advance = ctx.advance
 		
+		# non-relevant space
+		while ctx.current in ' #\n' and ctx.current != '':
+			# comments
+			if ctx.current == '#':
+				while ctx.current != '\n' and ctx.current != '':
+					advance()
+			advance()
+		
 		# if its an empty string, eof
 		if ctx.current == '':
 			return EOF(f'line {ctx.line}')
 		
-		# non-relevant space
-		while ctx.current in ' #\n':
-			# comments
-			if ctx.current == '#':
-				while ctx.current != '\n':
-					advance()
-			advance()
 		
 		# auxiliary
 		if ctx.current in '\t[]{}()':
@@ -85,7 +86,7 @@ def Tokenizer(file):
 		# name
 		elif ctx.current.isalpha():
 			n = ''
-			while ctx.current.isalpha() or ctx.current.isdigit() :
+			while ctx.current.isalpha() or ctx.current.isdigit():
 				n += ctx.current
 				advance()
 			return NAME(n)
@@ -94,7 +95,7 @@ def Tokenizer(file):
 		elif ctx.current == '\'':
 			s = ''
 			advance()
-			while ctx.current != '\'' or ctx.last == '\\' :
+			while (ctx.current != '\'' or ctx.last == '\\') and ctx.current != '':
 				# escape character
 				if ctx.current == '\\':
 					advance()
@@ -160,7 +161,7 @@ if __name__ == '__main__':
 		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_TOKENS_EXTENSION)
 		
 	# trick for verbosity
-	vprint = print if args.verbose else lambda a,b:None
+	vprint = print if args.verbose else lambda a,*b:None
 
 	results = []
 	with open(args.input,'r') as file:
@@ -168,6 +169,7 @@ if __name__ == '__main__':
 		token = None
 		while type(token) is not EOF:
 			token = next()
+			print(token)
 			results.append(str(token))
 	
 	vprint(results)

@@ -232,7 +232,7 @@ if __name__ == '__main__':
 		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION)
 	
 	# trick for verbosity
-	vprint = print if args.verbose else lambda a,b:None
+	vprint = print if args.verbose else lambda a,*b:None
 	
 	instructions = []
 	with open(args.input,'r') as file:

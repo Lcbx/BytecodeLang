@@ -55,6 +55,8 @@ D(obj, e) # uses b c computed in A()
 - make order of parameters not syntaxically relevant (+ allow unused / redondant parmeters ?)
 - allow closures ? ( = hidden function states ) + if not still, allow using function references but disallow returning a function itself
 - make a Callable type or support function as a native type?
+- while and for loop considered enumerable expressions
+- enumerable treated as so until an attempt at accessing an index, then it is converted to list automatically
 - use an async keyword where a function call is started on another thread,Task-like (+ use an await keyword to get their results ?)
 
 ### technical ideas

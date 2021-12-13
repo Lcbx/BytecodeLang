@@ -17,7 +17,7 @@ if not args.output:
 	args.output = args.input.replace(DEFAULT_COMPILED_EXTENSION, DEFAULT_ASSEMBLY_EXTENSION)
 
 # trick for verbosity
-vprint = print if args.verbose else lambda a,b:None
+vprint = print if args.verbose else lambda a,*b:None
 
 instructions = []
 with open(args.input,'rb') as file:
