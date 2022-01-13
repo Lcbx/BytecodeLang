@@ -16,17 +16,18 @@ class INT(TOKEN): pass
 class OP(TOKEN): pass
 class AUX(TOKEN): pass
 class EOF(TOKEN): pass
-	
 
-@dataclass
-class TokenizerContext:
-	file: 	 object
-	# current and column line in file
-	line:    int = 0
-	column:  int = 0
-	# last and current char
-	last: 	 str = ''
-	current: str = ''
+
+class Tokenizer:
+	
+	def __init__(self, file):
+		self.file   = file
+		# current and column line in file
+		self.line   = 0
+		self.column = 0
+		# last and current char
+		self.last   = ''
+		self.current = self.readCharacter()
 	
 	def __str__(self):
 		return f'line {self.line}, column {self.column}'
@@ -45,103 +46,102 @@ class TokenizerContext:
 			self.line += 1
 			self.column = 0
 	
-def Tokenizer(file):
-	ctx = TokenizerContext(file, 0, 0, '', '')
-	ctx.current = ctx.readCharacter()
-	
 	# generates 1 token at a time
-	def next():
-		advance = ctx.advance
+	def _next(self):
+		advance = self.advance
 		
 		# non-relevant space
-		while ctx.current in ' #\n' and ctx.current != '':
+		while self.current in ' #\n' and self.current != '':
 			# comments
-			if ctx.current == '#':
-				while ctx.current != '\n' and ctx.current != '':
+			if self.current == '#':
+				while self.current != '\n' and self.current != '':
 					advance()
 			advance()
 		
 		# if its an empty string, eof
-		if ctx.current == '':
-			return EOF(f'line {ctx.line}')
+		if self.current == '':
+			return EOF(f'line {self.line}')
 		
 		
 		# auxiliary
-		if ctx.current in '\t[]{}()':
-			aux = ctx.current
+		if self.current in '\t[]{}()':
+			aux = self.current
 			advance()
 			return AUX(aux)
 
 		# operators (there can be with a = behind)
-		elif ctx.current in '=!><-+/*':
+		elif self.current in '=!><-+/*':
 			op = None
 			advance()
-			if ctx.current=='=':
-				op = ctx.last+ctx.current
+			if self.current=='=':
+				op = self.last+self.current
 				advance()
 			else:
-				op = ctx.last
+				op = self.last
 			return OP(op)
 		
 		# name
-		elif ctx.current.isalpha():
+		elif self.current.isalpha():
 			n = ''
-			while ctx.current.isalpha() or ctx.current.isdigit():
-				n += ctx.current
+			while self.current.isalpha() or self.current.isdigit():
+				n += self.current
 				advance()
 			return NAME(n)
 
 		# string
-		elif ctx.current == '\'':
+		elif self.current == '\'':
 			s = ''
 			advance()
-			while (ctx.current != '\'' or ctx.last == '\\') and ctx.current != '':
+			while (self.current != '\'' or self.last == '\\') and self.current != '':
 				# escape character
-				if ctx.current == '\\':
+				if self.current == '\\':
 					advance()
 					# newline
-					if ctx.current == 'n':
+					if self.current == 'n':
 						s += '\n'
 					# string within string
 					else:
-						if ctx.current == '\'':
+						if self.current == '\'':
 							s += '\''
 						# right now we only support the above.
 						# the escapes are otherwise left as is
 						else:
-							s += ('\\' + ctx.current)
+							s += ('\\' + self.current)
 				else:
-					s += ctx.current
+					s += self.current
 				advance()
 			advance()
 			return STRING(s)
 		
 		# number
-		elif ctx.current.isdigit():
+		elif self.current.isdigit():
 			n = ''
-			while ctx.current.isdigit():
-				n += ctx.current
+			while self.current.isdigit():
+				n += self.current
 				advance()
 			# if there is a dot, it's a float
-			if ctx.current == '.':
-				n += ctx.current
+			if self.current == '.':
+				n += self.current
 				advance()
-				while ctx.current.isdigit():
-					n += ctx.current
+				while self.current.isdigit():
+					n += self.current
 					advance()
 				return FLOAT(float(n))
 			else:
 				return INT(int(n))
 				
-		return AUX(ctx.current)
+		return AUX(self.current)
+	
 	
 	# enrich token with context
-	def enrichedToken():
-		token = next()
-		token.context = copy(ctx)
+	def next(self):
+		token = self._next()
+		token.context = copy(self)
 		return token
 	
-	return enrichedToken
+	# enrich token with context
+	def __call__(self):
+		return self.next()
 
 
 ####################################
@@ -165,10 +165,10 @@ if __name__ == '__main__':
 
 	results = []
 	with open(args.input,'r') as file:
-		next = Tokenizer(file)
+		tokenizer = Tokenizer(file)
 		token = None
 		while type(token) is not EOF:
-			token = next()
+			token = tokenizer()
 			vprint(token)
 			results.append(str(token))
 	
