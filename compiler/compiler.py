@@ -82,12 +82,13 @@ def Statement():
 		# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
 		# maybe use a compiler function for this
 		
-		#print('cond', len(cond), 'inst', len(inst))
-		
+		# in this set of instructions :
 		# 4 = OP_JUMP, short, OP_POP
 		# 5 = OP_JUMP, short, OP_POP, OP_JUMP_IF_FALSE
+		
+		#print('cond', len(cond), 'inst', len(inst))
 		inst = [*cond, OP_JUMP_IF_FALSE, *struct.pack('h', len(inst)+4), OP_POP, *inst, OP_JUMP, *struct.pack('h', - (len(inst)+len(cond)+5) ) ]
-		print('res', len(inst))
+		#print('res', len(inst))
 		
 	elif consume(NAME):
 		name = consumed

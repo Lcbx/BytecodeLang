@@ -1,5 +1,5 @@
 compile_Out:
-Error line 1, column 4 : hello2 not declared yet
+Error line 1, column 4 : unknown variable hello2
 1 errors
 __SECTION__
 compile_Err:
@@ -10,6 +10,6 @@ simulation_Out:
 __SECTION__
 simulation_Err:
 Traceback (most recent call last):
-  File "C:\Users\lucco\Desktop\tests\pyLang\compiler\vm_simulator.py", line 13, in <module>
+  File "C:\Users\lucco\Desktop\tests\pyLang\compiler\vm_simulator.py", line 17, in <module>
     with open(args.input,'rb') as file:
 FileNotFoundError: [Errno 2] No such file or directory: 'tests/basic_test.hex'

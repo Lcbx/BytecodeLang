@@ -1,0 +1,50 @@
+compile_Out:
+0 errors
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+0 :	OP_INT1 => 5 --
+2 :	OP_LOAD => (0, 5) --
+4 :	OP_INT1 => 1 --
+6 :	OP_GT => True --
+7 :	OP_JUMP_IF_FALSE => (11, True) --
+10 :	OP_POP => True --
+11 :	OP_LOAD => (0, 5) --
+13 :	OP_INT1 => 1 --
+15 :	OP_SUB => 4 --
+16 :	OP_STORE => (0, 5, 4) --
+18 :	OP_JUMP => -17 --
+4 :	OP_INT1 => 1 --
+6 :	OP_GT => True --
+7 :	OP_JUMP_IF_FALSE => (11, True) --
+10 :	OP_POP => True --
+11 :	OP_LOAD => (0, 4) --
+13 :	OP_INT1 => 1 --
+15 :	OP_SUB => 3 --
+16 :	OP_STORE => (0, 4, 3) --
+18 :	OP_JUMP => -17 --
+4 :	OP_INT1 => 1 --
+6 :	OP_GT => True --
+7 :	OP_JUMP_IF_FALSE => (11, True) --
+10 :	OP_POP => True --
+11 :	OP_LOAD => (0, 3) --
+13 :	OP_INT1 => 1 --
+15 :	OP_SUB => 2 --
+16 :	OP_STORE => (0, 3, 2) --
+18 :	OP_JUMP => -17 --
+4 :	OP_INT1 => 1 --
+6 :	OP_GT => True --
+7 :	OP_JUMP_IF_FALSE => (11, True) --
+10 :	OP_POP => True --
+11 :	OP_LOAD => (0, 2) --
+13 :	OP_INT1 => 1 --
+15 :	OP_SUB => 1 --
+16 :	OP_STORE => (0, 2, 1) --
+18 :	OP_JUMP => -17 --
+4 :	OP_INT1 => 1 --
+6 :	OP_GT => False --
+7 :	OP_JUMP_IF_FALSE => (11, False) --
+__SECTION__
+simulation_Err:
