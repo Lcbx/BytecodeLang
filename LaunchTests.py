@@ -59,7 +59,7 @@ def listFiles(extensionsToSearch):
 		)]
 		
 	# avoid mismatches because you used a different way of writing path of file
-	return [os.path.relpath(filepath) for filepath in res]
+	return [os.path.relpath(filepath).replace('\\', '/') for filepath in res]
 
 def clean():
 	for filePath in listFiles(extensionsToClean):
@@ -174,7 +174,7 @@ if __name__ == '__main__':
 							if len(resultSplit) != len(expectedSplit) or any( res != exp for res,  exp in zip(resultSplit, expectedSplit)):
 								failed = True
 								resultPresentation =  quote(result[section]) if result[section] else f'{WARNING}section was empty !{ENDC}'
-								print(f'{BOLD}result was {WARNING}unexpected{ENDC} : {UNDERLINE}{file}:{section}{ENDC}{ENDLINE}{resultPresentation}')
+								print(f'{BOLD}result was {WARNING}unexpected{ENDC} : {UNDERLINE}{file}{ENDC} ({section}){ENDLINE}{resultPresentation}')
 								print(f'{BOLD}expected :{ENDC}{ENDLINE}{quote(expected[section])}')
 								if VERBOSE:
 									diff = HtmlDiff()
