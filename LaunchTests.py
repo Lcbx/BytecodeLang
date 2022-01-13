@@ -53,11 +53,11 @@ def listFiles(extensionsToSearch):
 				]
 	# if TEST_PATH is file, find files with same name and different extensions
 	else:
-		[ file for extension in extensionsToSearch
-			if os.path.exists(
-				file := TEST_PATH.replace(compExt.DEFAULT_CODE_EXTENSION, extension)
+		res = [
+			file for extension in extensionsToSearch
+				if os.path.exists(
+					file := TEST_PATH.replace(compExt.DEFAULT_CODE_EXTENSION, extension)
 		)]
-		
 	# avoid mismatches because you used a different way of writing path of file
 	return [os.path.relpath(filepath).replace('\\', '/') for filepath in res]
 
@@ -120,7 +120,6 @@ def writeExpectedResults(filePath, result):
 
 
 if __name__ == '__main__':
-
 	extensions = [getattr(compExt, item)
 				  for item in dir(compExt)
 					if not item.startswith('__')]
@@ -128,8 +127,6 @@ if __name__ == '__main__':
 	extensionsToClean = [ext for ext in extensions
 						if  ext not in ( compExt.DEFAULT_CODE_EXTENSION,
 										 compExt.DEFAULT_TEST_RESULT_EXTENSION ) ] +['.html'] # for verbose diff
-	
-	vprint('extensions', extensions)
 	
 	import argparse
 	commandLineArgs = argparse.ArgumentParser(description='code tests launcher for project scripting language')
@@ -143,6 +140,8 @@ if __name__ == '__main__':
 	TEST_PATH = args.input
 	VERBOSE = args.verbose
 	vprint = print if VERBOSE else lambda a,*b:None
+	
+	vprint('extensions', extensions)
 	
 	TestsRan = 0
 	TestFails = 0

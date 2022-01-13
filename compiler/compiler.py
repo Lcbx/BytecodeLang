@@ -48,7 +48,12 @@ def Program(file):
 	next = Tokenizer(file)
 	token = next()
 	
-	prog = Statement()
+	prog = []
+	instruction = Statement()
+	while instruction:
+		prog.extend(instruction)
+		instruction = Statement()
+	
 	return prog
 
 def Statement():
@@ -91,7 +96,7 @@ def OrExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, 'or', exact=True):
-		if len(inst)==0: Error('or expression missing left operand')
+		if len(inst)==0:  Error('or expression missing left operand')
 		inst2 = AndExpression()
 		if len(inst2)==0: Error('or expression missing right operand')
 		conditions.append(inst2)
@@ -103,10 +108,10 @@ def OrExpression():
 def AndExpression():
 	conditions = []
 	inst = Equality()
-	OVERHEAD = 4 # 4 = OP_JUMP, short, OP_POP
+	OVERHEAD = 4 # 4 bytes = OP_JUMP, short (2 bytes), OP_POP
 	total_offset = 1 - OVERHEAD
 	while consume(NAME, 'and', exact=True):
-		if len(inst)==0: Error('and expression missing left operand')
+		if len(inst)==0:  Error('and expression missing left operand')
 		inst2 = Equality()
 		if len(inst2)==0: Error('and expression missing right operand')
 		conditions.append(inst2)

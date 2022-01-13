@@ -156,6 +156,7 @@ with open(args.input,'rb') as file:
 			elif opcode == OP_PRINT:
 				val = stack[-1]
 				stack.pop()
+				print(val)
 			elif opcode == OP_SHOW_STACK: 
 				val = stack
 			elif opcode == OP_END: 
