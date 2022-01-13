@@ -23,20 +23,20 @@ instructions = []
 with open(args.input,'rb') as file:
 	#print('NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.')
 	content = file.read()
-	i=0
-	while i<len(content):
-		opcode = content[i]
+	index=0
+	while index<len(content):
+		opcode = content[index]
 		opName = opcodes[opcode].name
-		vprint(i, ':', end='\t')
 		val = ''
-		i+=1
+		original_index = index
+		index+=1
 		if opcode == OP_STRING:
-				c = content[i]
+				c = content[index]
 				while c!= 0 and  c != None:
-					val+= chr(content[i])
-					i+=1
-					c = content[i]
-				i+=1
+					val+= chr(content[index])
+					index+=1
+					c = content[index]
+				index+=1
 		else:
 			bytesConsumed = opcodes[opcode].bytesConsumed
 			fmt = None
@@ -51,11 +51,11 @@ with open(args.input,'rb') as file:
 					fmt = 'i'
 				else:
 					print('unknown number of bytes consumed :', bytesConsumed, ' for op ', opName )
-				val += str(struct.unpack(fmt, content[i:i+bytesConsumed])[0])
-				i += bytesConsumed
+				val += str(struct.unpack(fmt, content[index:index+bytesConsumed])[0])
+				index += bytesConsumed
 		
 		instruction = f'{opName} {val}'
-		vprint(instruction)
+		vprint(original_index, ':\t', instruction)
 		instructions.append(instruction)
 
 if len(instructions)!=0:

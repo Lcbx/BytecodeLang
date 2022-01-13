@@ -17,6 +17,8 @@ class OP(TOKEN): pass
 class AUX(TOKEN): pass
 class EOF(TOKEN): pass
 
+# TODO : take into account use of tabs
+# make a token to signal raising/lowering scope?
 
 class Tokenizer:
 	
