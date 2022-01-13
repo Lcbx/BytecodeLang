@@ -10,14 +10,24 @@ import struct
 token = None 	# token to consume
 consumed = None # last token consumed
 # Type : 	type of token accepted
-# accepted: if exact==False : list of possible char accepted
-#			if exact==True : exact string accepted
-def consume(Type, accepted=None, exact=False):
+# accepted: list of possible char accepted
+def consume(Type, accepted=None):
 	global token
 	global consumed
 	if type(token) is Type:
-		if accepted==None or (not exact and token.value in accepted or
-				 				  exact and token.value == accepted):
+		if accepted==None or token.value in accepted:
+			#print(token)
+			consumed = token.value
+			token = next()
+			return True
+	return False
+# Type : 	type of token accepted
+# accepted: exact string accepted
+def consumeExact(Type, accepted):
+	global token
+	global consumed
+	if type(token) is Type:
+		if token.value == accepted:
 			#print(token)
 			consumed = token.value
 			token = next()
@@ -48,17 +58,13 @@ def Program(file):
 	next = Tokenizer(file)
 	token = next()
 	
-	prog = []
-	instruction = Statement()
-	while instruction:
-		prog.extend(instruction)
-		instruction = Statement()
+	prog = Statement()
 	
 	return prog
 
 def Statement():
 	inst = []	
-	if consume(NAME, 'def', exact=True):
+	if consumeExact(NAME, 'def'):
 		if consume(NAME):
 			name = consumed
 			if name in Variables: Error(name, 'already declared')
@@ -68,9 +74,24 @@ def Statement():
 			elif consume(AUX, '('): Error('functions not implemented yet')
 		else: Error('no name after def')
 		
+	elif consumeExact(NAME, 'while'):
+		cond = Expression()
+		if len(cond)==0:  Error('while missing condition to evaluate')
+		consume(AUX, '\t')
+		inst = Statement()
+		# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
+		# maybe use a compiler function for this
+		
+		#print('cond', len(cond), 'inst', len(inst))
+		
+		# 4 = OP_JUMP, short, OP_POP
+		# 5 = OP_JUMP, short, OP_POP, OP_JUMP_IF_FALSE
+		inst = [*cond, OP_JUMP_IF_FALSE, *struct.pack('h', len(inst)+4), OP_POP, *inst, OP_JUMP, *struct.pack('h', - (len(inst)+len(cond)+5) ) ]
+		print('res', len(inst))
+		
 	elif consume(NAME):
 		name = consumed
-		if name not in Variables: Error(name, 'not declared yet')
+		if name not in Variables: Error('unknown variable', name)
 		elif consume(OP, '='):
 			inst = Expression()
 			inst.append(OP_STORE)
@@ -95,7 +116,7 @@ def OrExpression():
 	inst = AndExpression()
 	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
-	while consume(NAME, 'or', exact=True):
+	while consumeExact(NAME, 'or'):
 		if len(inst)==0:  Error('or expression missing left operand')
 		inst2 = AndExpression()
 		if len(inst2)==0: Error('or expression missing right operand')
@@ -110,7 +131,7 @@ def AndExpression():
 	inst = Equality()
 	OVERHEAD = 4 # 4 bytes = OP_JUMP, short (2 bytes), OP_POP
 	total_offset = 1 - OVERHEAD
-	while consume(NAME, 'and', exact=True):
+	while consumeExact(NAME, 'and'):
 		if len(inst)==0:  Error('and expression missing left operand')
 		inst2 = Equality()
 		if len(inst2)==0: Error('and expression missing right operand')
@@ -123,7 +144,7 @@ def AndExpression():
 
 def Equality():
 	inst = Comparison()
-	if 	consume(OP, '==', exact=True) or consume(OP, '!=', True):
+	if 	consumeExact(OP, '==') or consumeExact(OP, '!='):
 		op = consumed
 		if len(inst)==0: Error('missing left operand before', op)
 		inst2 = Comparison()
@@ -136,7 +157,7 @@ def Equality():
 
 def Comparison():
 	inst = Addition()
-	if consume(OP, '>=', exact=True) or consume(OP, '>=', True) or consume(OP, '<', exact=True) or consume(OP, '<=', True):
+	if consumeExact(OP, '>') or consumeExact(OP, '>=') or consumeExact(OP, '<') or consumeExact(OP, '<='):
 		op = consumed
 		if len(inst)==0: Error('missing left operand before', op)
 		inst2 = Addition()
@@ -153,10 +174,11 @@ def Comparison():
 def Addition():
 	# might lead by a - or ! to negate number or bool
 	negate  = False
-	if consume(OP, '!-'):
+	if consume(OP, '-'):
 		if consumed=='-' and ( type(token) is INT or type(token) is FLOAT ):
 			token.value *= -1
-		else: negate = True
+	elif consume(OP, '!'):
+		negate = True
 	
 	inst = Multiply()
 	while consume(OP,'+-'):
