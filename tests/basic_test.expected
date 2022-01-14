@@ -1,5 +1,5 @@
 compile_Out:
-Error line 1, column 4 : unknown variable hello2
+Error line 1, column 3 : unknown variable hello2
 1 errors
 __SECTION__
 compile_Err:

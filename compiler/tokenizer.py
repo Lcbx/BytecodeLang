@@ -9,13 +9,14 @@ class TOKEN:
 	def verbose(self):
 		return f'{type(self).__name__ } at {self.context} : {self.value}'
 
-class NAME(TOKEN): pass
+class NAME  (TOKEN): pass
 class STRING(TOKEN): pass
-class FLOAT(TOKEN): pass
-class INT(TOKEN): pass
-class OP(TOKEN): pass
-class AUX(TOKEN): pass
-class EOF(TOKEN): pass
+class FLOAT (TOKEN): pass
+class INT   (TOKEN): pass
+class OP    (TOKEN): pass
+class AUX   (TOKEN): pass
+class TABS  (TOKEN): pass
+class EOF   (TOKEN): pass
 
 # TODO : take into account use of tabs
 # make a token to signal raising/lowering scope?
@@ -31,33 +32,49 @@ class Tokenizer:
 		self.last   = ''
 		self.current = self.readCharacter()
 	
-	def __str__(self):
-		return f'line {self.line}, column {self.column}'
-	
 	def readCharacter(self):
 		character = self.file.read(1)
 		#print(character, end='', flush=True)
 		return character
+	
+	def __str__(self):
+		return f'line {self.line}, column {self.column}'
 
 	# reads the next char
 	def advance(self):
-		self.last = self.current
-		self.current = self.readCharacter()
 		self.column += 1
 		if self.current == '\n':
 			self.line += 1
 			self.column = 0
+		self.last = self.current
+		self.current = self.readCharacter()
 	
 	# generates 1 token at a time
 	def _next(self):
 		advance = self.advance
 		
+		# ignore \n == eol
+		if self.current == '\n':
+			advance()
+		
+		#print("token line ", self.line, ",", self.column, ":", self.last, ",", self.current)
+		# indentation level
+		if self.column == 0:
+			level = 0
+			while self.current == '\t':
+				level +=1
+				advance()
+			if level != 0:
+				return TABS(level)
+		
 		# non-relevant space
-		while self.current in ' #\n' and self.current != '':
-			# comments
-			if self.current == '#':
-				while self.current != '\n' and self.current != '':
-					advance()
+		while self.current.isspace():
+			advance()
+		
+		# comments
+		if self.current == '#':
+			while self.current != '\n':
+				advance()
 			advance()
 		
 		# if its an empty string, eof
@@ -94,7 +111,7 @@ class Tokenizer:
 		elif self.current == '\'':
 			s = ''
 			advance()
-			while (self.current != '\'' or self.last == '\\') and self.current != '':
+			while (self.current != '\'' or self.last == '\\'):
 				# escape character
 				if self.current == '\\':
 					advance()
@@ -132,7 +149,8 @@ class Tokenizer:
 			else:
 				return INT(int(n))
 				
-		return AUX(self.current)
+		advance()
+		return EOF(f'unhandled token : {self.current}')
 	
 	
 	# enrich token with context

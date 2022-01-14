@@ -1,5 +1,5 @@
 from opcodes import *
-from tokenizer import Tokenizer, NAME, STRING, FLOAT, INT, OP, AUX, EOF
+from tokenizer import Tokenizer, NAME, STRING, FLOAT, INT, OP, AUX, TABS, EOF
 import struct
 
 
@@ -46,6 +46,8 @@ Variables = {}
 def declare(name):
 	Variables[name] = len(Variables)
 
+# expected identation level
+indents = 0
 
 ####################################
 ## the recursive code generator
@@ -58,12 +60,30 @@ def Program(file):
 	next = Tokenizer(file)
 	token = next()
 	
-	prog = Statement()
+	prog = Block()
 	
 	return prog
 
+def Block():
+	global indents
+	inst = []
+	while True:
+		if indents!=0 and not consumeExact(TABS, indents):
+			return inst
+		
+		res = Statement()
+		
+		if not res:
+			return inst
+		
+		inst.extend(res)
+
 def Statement():
-	inst = []	
+	global indents
+	inst = []
+	
+	# TODO: separate into functions : def,  while, declaration
+	
 	if consumeExact(NAME, 'def'):
 		if consume(NAME):
 			name = consumed
@@ -77,8 +97,8 @@ def Statement():
 	elif consumeExact(NAME, 'while'):
 		cond = Expression()
 		if len(cond)==0:  Error('while missing condition to evaluate')
-		consume(AUX, '\t')
-		inst = Statement()
+		indents += 1
+		inst = Block()
 		# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
 		# maybe use a compiler function for this
 		
@@ -99,12 +119,9 @@ def Statement():
 			inst.append(Variables[name])
 		elif consume(AUX, '('): Error('functions not implemented yet')
 	
+	# temporary
 	else:
 		inst = Expression()
-	
-	if inst:
-		inst2 = Statement()
-		inst.extend(inst2)
 	
 	return inst
 
