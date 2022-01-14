@@ -66,24 +66,33 @@ def clean():
 		vprint(f'{BOLD}cleaning{ENDC} {UNDERLINE}{filePath}{ENDC}')
 		os.remove(filePath)
 
+def tokenize():
+	for filePath in listFiles([compExt.DEFAULT_CODE_EXTENSION]):
+		vprint(f'{BOLD}tokenizing{ENDC} {UNDERLINE}{filePath}{ENDC}')
+		trace = runCommandLine([PythonExePath, './compiler/tokenizer.py', '-' + ('v' if VERBOSE else '') + 'i', filePath], capture_output=True)
+		if trace.stdout or trace.stderr:
+			print(_prepString(trace.stdout) )
+			print(_prepString(trace.stderr) )
+
+
+def _prepString(bytes):
+	res = bytes.decode("utf-8")
+	if res: return res.strip()
+	return ""
 
 def generateCodeTestResults(filePath):
 	vprint( f'{BOLD}testing{ENDC} {UNDERLINE}{filePath}{ENDC}')
 	result = Document()
 	
-	def prepString(bytes):
-		res = bytes.decode("utf-8")
-		if res: return res.strip()
-		return ""
 	
 	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-i', filePath], capture_output=True)
-	result.compile_Out = prepString(compile.stdout)
-	result.compile_Err = prepString(compile.stderr)
+	result.compile_Out = _prepString(compile.stdout)
+	result.compile_Err = _prepString(compile.stderr)
 	
 	simfilePath = filePath.replace(compExt.DEFAULT_CODE_EXTENSION, compExt.DEFAULT_COMPILED_EXTENSION)
 	simulation = runCommandLine([PythonExePath, './compiler/vm_simulator.py', '-i', simfilePath], capture_output=True)
-	result.simulation_Out = prepString(simulation.stdout)
-	result.simulation_Err = prepString(simulation.stderr)
+	result.simulation_Out = _prepString(simulation.stdout)
+	result.simulation_Err = _prepString(simulation.stderr)
 	
 	# TODO? : use real vm on compiled bytecode and compare output with vm_simulator
 	return result
@@ -134,6 +143,7 @@ if __name__ == '__main__':
 	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs')
 	commandLineArgs.add_argument('-k', '--keep',    action='store_true', default = False, help='if set will keep generated files')
 	commandLineArgs.add_argument('-u', '--update',  action='store_true', default = False, help='if set will update expected results')
+	commandLineArgs.add_argument('-t', '--tokenize',action='store_true', default = False, help='if set will only tokenize code (and not launch tests)')
 	commandLineArgs.add_argument('-c', '--clean',   action='store_true', default = False, help='if set will only clean (and not launch tests)')
 	args = commandLineArgs.parse_args()
 	
@@ -146,10 +156,8 @@ if __name__ == '__main__':
 	TestsRan = 0
 	TestFails = 0
 	
-	if not args.clean:
+	if not args.clean and not args.tokenize:
 		vprint('files found', listFiles(extensions))
-
-		#clean()
 
 		for file in listFiles([compExt.DEFAULT_CODE_EXTENSION]):
 			result = generateCodeTestResults(file)
@@ -201,5 +209,7 @@ if __name__ == '__main__':
 		print(f'{format}Ran {TestsRan}{ENDC}')
 		print(f'{format}Failed {TestFails}{ENDC}')
 	
-	if TestFails == 0 and not args.keep:
+	if args.tokenize:
+		tokenize()
+	elif TestFails == 0 and not args.keep:
 		clean()
