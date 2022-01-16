@@ -25,12 +25,13 @@ BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 
 ENDLINE = '\n'
+SPACEx2 = '  '
 TAB = '\t'
 EMPTY_STR = ''
 
 
 def quote(text):
-	return f'{OKBLUE}{TAB}{TAB.join(text.splitlines(True))}{ENDC}'
+	return f'{OKBLUE}{SPACEx2}{SPACEx2.join(text.splitlines(True))}{ENDC}'
 
 # to allow different dynamic sections
 class Document(dict):
@@ -84,6 +85,9 @@ def generateCodeTestResults(filePath):
 	vprint( f'{BOLD}testing{ENDC} {UNDERLINE}{filePath}{ENDC}')
 	result = Document()
 	
+	tokenize = runCommandLine([PythonExePath, './compiler/tokenizer.py', '-vi', filePath], capture_output=True)
+	result.tokenize_Out = _prepString(tokenize.stdout)
+	result.tokenize_Err = _prepString(tokenize.stderr)
 	
 	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-i', filePath], capture_output=True)
 	result.compile_Out = _prepString(compile.stdout)
