@@ -1,3 +1,9 @@
+tokenize_Out:
+NAME: hello2, FLOAT: 13.0, OP: +, INT: 1020, INT: 3242, STRING: great, STRING: 'I love RocknRoll', OP: -, INT: 8, OP: *, FLOAT: 5.0, INT: 8, OP: *, INT: 3, OP: /, INT: 2, OP: -, INT: 5, OP: *, INT: 2, INT: 5, OP: <, INT: 4, INT: 17, OP: ==, INT: 17, INT: 5, OP: <, INT: 4, OP: !=, INT: 34, INT: 4, OP: <, INT: 6, NAME: and, INT: 45, OP: ==, INT: 45, NAME: and, INT: 23, OP: ==, INT: 32, INT: 23, OP: ==, INT: 32, NAME: and, INT: 45, OP: ==, INT: 45, NAME: and, INT: 4, OP: <, INT: 6, INT: 1024, EOF: line 14
+__SECTION__
+tokenize_Err:
+
+__SECTION__
 compile_Out:
 Error line 1, column 3 : unknown variable hello2
 1 errors

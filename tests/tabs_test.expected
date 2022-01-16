@@ -1,0 +1,21 @@
+tokenize_Out:
+NAME: def, NAME: a, OP: =, INT: 1, TABS: 1, NAME: def, NAME: b, OP: =, INT: 2, TABS: 1, NAME: def, NAME: c, OP: =, INT: 3, NAME: def, NAME: d, OP: =, INT: 4, NAME: def, NAME: e, OP: =, INT: 5, NAME: def, NAME: f, OP: =, INT: 6, TABS: 2, NAME: def, NAME: g, OP: =, INT: 7, TABS: 2, NAME: def, NAME: h, OP: =, INT: 8, TABS: 2, NAME: def, NAME: i, OP: =, INT: 9, NAME: def, NAME: j, OP: =, INT: 10, EOF: line 9
+__SECTION__
+tokenize_Err:
+
+__SECTION__
+compile_Out:
+Error line 1, column 1 : illegal token : 'TABS: 1'
+1 errors
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+
+__SECTION__
+simulation_Err:
+Traceback (most recent call last):
+  File "C:\Users\lucco\Desktop\tests\pyLang\compiler\vm_simulator.py", line 17, in <module>
+    with open(args.input,'rb') as file:
+FileNotFoundError: [Errno 2] No such file or directory: 'tests/tabs_test.hex'

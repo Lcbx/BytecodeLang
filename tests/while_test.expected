@@ -1,3 +1,9 @@
+tokenize_Out:
+NAME: def, NAME: a, OP: =, INT: 5, NAME: while, NAME: a, OP: >, INT: 1, TABS: 1, NAME: a, OP: =, NAME: a, OP: -, INT: 1, EOF: line 2
+__SECTION__
+tokenize_Err:
+
+__SECTION__
 compile_Out:
 0 errors
 __SECTION__
@@ -5,46 +11,46 @@ compile_Err:
 
 __SECTION__
 simulation_Out:
-0 :	OP_INT1 => 5 --
-2 :	OP_LOAD => (0, 5) --
-4 :	OP_INT1 => 1 --
-6 :	OP_GT => True --
-7 :	OP_JUMP_IF_FALSE => (11, True) --
-10 :	OP_POP => True --
-11 :	OP_LOAD => (0, 5) --
-13 :	OP_INT1 => 1 --
-15 :	OP_SUB => 4 --
-16 :	OP_STORE => (0, 5, 4) --
-18 :	OP_JUMP => -17 --
-4 :	OP_INT1 => 1 --
-6 :	OP_GT => True --
-7 :	OP_JUMP_IF_FALSE => (11, True) --
-10 :	OP_POP => True --
-11 :	OP_LOAD => (0, 4) --
-13 :	OP_INT1 => 1 --
-15 :	OP_SUB => 3 --
-16 :	OP_STORE => (0, 4, 3) --
-18 :	OP_JUMP => -17 --
-4 :	OP_INT1 => 1 --
-6 :	OP_GT => True --
-7 :	OP_JUMP_IF_FALSE => (11, True) --
-10 :	OP_POP => True --
-11 :	OP_LOAD => (0, 3) --
-13 :	OP_INT1 => 1 --
-15 :	OP_SUB => 2 --
-16 :	OP_STORE => (0, 3, 2) --
-18 :	OP_JUMP => -17 --
-4 :	OP_INT1 => 1 --
-6 :	OP_GT => True --
-7 :	OP_JUMP_IF_FALSE => (11, True) --
-10 :	OP_POP => True --
-11 :	OP_LOAD => (0, 2) --
-13 :	OP_INT1 => 1 --
-15 :	OP_SUB => 1 --
-16 :	OP_STORE => (0, 2, 1) --
-18 :	OP_JUMP => -17 --
-4 :	OP_INT1 => 1 --
-6 :	OP_GT => False --
-7 :	OP_JUMP_IF_FALSE => (11, False) --
+0    	OP_INT1 => 5 --
+2    	OP_LOAD => var0 (5) --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (5) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 4 --
+16   	OP_STORE => var0 = 4 (was 5) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (4) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 3 --
+16   	OP_STORE => var0 = 3 (was 4) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (3) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 2 --
+16   	OP_STORE => var0 = 2 (was 3) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (2) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 1 --
+16   	OP_STORE => var0 = 1 (was 2) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => False --
+7    	OP_JUMP_IF_FALSE => jump 11 --
 __SECTION__
 simulation_Err:

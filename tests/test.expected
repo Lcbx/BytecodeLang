@@ -1,3 +1,9 @@
+tokenize_Out:
+NAME: def, NAME: hello, OP: =, INT: 34, NAME: def, NAME: dear, OP: =, FLOAT: 34.5, NAME: def, NAME: equal, OP: =, NAME: hello, OP: ==, AUX: (, NAME: dear, OP: -, FLOAT: 0.5, AUX: ), EOF: line 2
+__SECTION__
+tokenize_Err:
+
+__SECTION__
 compile_Out:
 0 errors
 __SECTION__
@@ -5,12 +11,12 @@ compile_Err:
 
 __SECTION__
 simulation_Out:
-0 :	OP_INT1 => 34 --
-2 :	OP_FLOAT => 34.5 --
-7 :	OP_LOAD => (0, 34) --
-9 :	OP_LOAD => (1, 34.5) --
-11 :	OP_FLOAT => 0.5 --
-16 :	OP_SUB => 34.0 --
-17 :	OP_EQ => True --
+0    	OP_INT1 => 34 --
+2    	OP_FLOAT => 34.5 --
+7    	OP_LOAD => var0 (34) --
+9    	OP_LOAD => var1 (34.5) --
+11   	OP_FLOAT => 0.5 --
+16   	OP_SUB => 34.0 --
+17   	OP_EQ => True --
 __SECTION__
 simulation_Err:
