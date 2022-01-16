@@ -37,9 +37,9 @@ def consumeExact(Type, accepted):
 # a function to show parse errors
 errorCount = 0
 def Error(*msg):
-	print('Error', token.context, ':', *msg)
 	global errorCount
 	errorCount += 1
+	print(f'Error {token.context} :', *msg)
 
 # the variables
 Variables = {}
@@ -48,6 +48,10 @@ def declare(name):
 
 # expected identation level
 indents = 0
+
+# packs a jump offset into 2 bytes
+def jumpOffset(offset):
+	return struct.pack('h', offset)
 
 ####################################
 ## the recursive code generator
@@ -79,52 +83,52 @@ def Block():
 		inst.extend(res)
 
 def Statement():
-	global indents
-	inst = []
-	
-	# TODO: separate into functions : def,  while, declaration
-	
-	if consumeExact(NAME, 'def'):
-		if consume(NAME):
-			name = consumed
-			if name in Variables: Error(name, 'already declared')
-			if consume(OP, '='):
-				declare(name)
-				inst = Expression()
-			elif consume(AUX, '('): Error('functions not implemented yet')
-		else: Error('no name after def')
-		
-	elif consumeExact(NAME, 'while'):
-		cond = Expression()
-		if len(cond)==0:  Error('while missing condition to evaluate')
-		indents += 1
-		inst = Block()
-		# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
-		# maybe use a compiler function for this
-		
-		# in this set of instructions :
-		# 4 = OP_JUMP, short, OP_POP
-		# 5 = OP_JUMP, short, OP_POP, OP_JUMP_IF_FALSE
-		
-		#print('cond', len(cond), 'inst', len(inst))
-		inst = [*cond, OP_JUMP_IF_FALSE, *struct.pack('h', len(inst)+4), OP_POP, *inst, OP_JUMP, *struct.pack('h', - (len(inst)+len(cond)+5) ) ]
-		#print('res', len(inst))
-		
-	elif consume(NAME):
-		name = consumed
-		if name not in Variables: Error('unknown variable', name)
-		elif consume(OP, '='):
-			inst = Expression()
-			inst.append(OP_STORE)
-			inst.append(Variables[name])
-		elif consume(AUX, '('): Error('functions not implemented yet')
-	
-	# temporary
-	else:
-		inst = Expression()
+	inst =  Declaration() 	 if consumeExact(NAME, 'def')   else \
+			WhileStatement() if consumeExact(NAME, 'while') else \
+			Assignment()	 if consume(NAME)				else \
+			Expression() # temporary
 	
 	return inst
 
+def Declaration():
+	if consume(NAME):
+		name = consumed
+		if name in Variables: Error(name, 'already declared')
+		if consume(OP, '='):
+			declare(name)
+			inst = Expression()
+			return inst
+		elif consume(AUX, '('): Error('functions not implemented yet')
+	else: Error('no name after def')
+	
+def Assignment():
+	name = consumed
+	if name not in Variables: Error('unknown variable', name)
+	elif consume(OP, '='):
+		inst = [ *Expression(), OP_STORE, Variables[name] ]
+		return inst
+	elif consume(AUX, '('): Error('functions not implemented yet')
+	
+	# NOTE: we allow lone expressions but not variables
+	# 		this means that `-a` is allowed but `a` is not
+	else: Error(f'lone variable {name}')
+
+def WhileStatement():
+	global indents
+	cond = Expression()
+	if len(cond)==0:  Error('while missing condition to evaluate')
+	indents += 1
+	inst = Block()
+	if len(inst)==0:  Error('while missing instructions to loop over')
+	# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
+	# maybe use a compiler function for this
+	
+	# in this set of instructions :
+	# 4 = OP_JUMP_IF_FALSE, short, OP_POP
+	# 5 = OP_JUMP_IF_FALSE, short, OP_POP, OP_JUMP
+	
+	inst = [*cond, OP_JUMP_IF_FALSE, *jumpOffset( len(inst)+4 ), OP_POP, *inst, OP_JUMP, *jumpOffset( - (len(inst)+len(cond)+5) ) ]
+	return inst
 
 def Expression():
 	return OrExpression()
@@ -141,7 +145,7 @@ def OrExpression():
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
-		inst.extend([ OP_JUMP_IF, *struct.pack('h', total_offset), OP_POP, *cond ])
+		inst.extend([ OP_JUMP_IF, *jumpOffset(total_offset), OP_POP, *cond ])
 	return inst
 
 def AndExpression():
@@ -156,7 +160,7 @@ def AndExpression():
 		conditions.append(inst2)
 		total_offset+= (len(inst2)+ OVERHEAD)
 	for cond in conditions:
-		inst.extend([ OP_JUMP_IF_FALSE, *struct.pack('h', total_offset), OP_POP, *cond ])
+		inst.extend([ OP_JUMP_IF_FALSE, *jumpOffset(total_offset), OP_POP, *cond ])
 		total_offset-= (len(cond)+ OVERHEAD)
 	return inst
 
