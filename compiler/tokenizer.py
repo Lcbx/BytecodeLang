@@ -186,13 +186,13 @@ if __name__ == '__main__':
 	results = []
 	with open(args.input,'r') as file:
 		tokenizer = Tokenizer(file)
+		tokens = []
 		token = None
 		while type(token) is not EOF:
 			token = tokenizer()
-			vprint(token)
 			results.append(str(token))
 	
+	content = ', '.join(results)
+	vprint(content)
 	with open(args.output,'w') as file:
-		file.write('\n'.join(results))
-		
-		
+		file.write(content)

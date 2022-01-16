@@ -259,7 +259,7 @@ def Primary():
 			Error('closing parenthesis ) missing')
 	
 	elif type(token) is not EOF: 
-		Error(f'illegal token : \'{token.value}\'')
+		Error(f'illegal token : \'{token}\'')
 		token = next()
 	return inst
 
