@@ -25,7 +25,8 @@ with open(args.input,'rb') as file:
 		opcode = content[index]
 		opName = opcodes[opcode].name
 		bytesConsumed = opcodes[opcode].bytesConsumed
-		print(index, ':', end='\t')
+		PADDING = ' ' * (5 - len(str(index)))
+		print(f'{index}{PADDING}', end='\t')
 		value = ''
 		index+=1
 		if opcode == OP_STRING:
@@ -77,27 +78,28 @@ with open(args.input,'rb') as file:
 			elif opcode == OP_LOAD:
 				var = stack[value]
 				stack.append(var)
-				value = (value, var)
+				value = f'var{value} ({var})'
 			elif opcode == OP_STORE:
 				var = stack[value]
 				newVar = stack[-1] 
 				stack[value] = newVar
-				value = (value,var,newVar)
+				value = f'var{value} = {newVar} (was {var})'
 			elif opcode == OP_POP:
 				value = stack[-1]
 				stack.pop()
 			elif opcode == OP_JUMP:
 				index+= value
+				value = f'jumped {value}'
 				if args.verbose: input('press Enter...')
 			elif opcode == OP_JUMP_IF:
 				cond = stack[-1]
-				if cond: index+= value 
-				value = (value, cond)
+				if cond: index += value 
+				value = ('' if cond else '!') + 'jump ' + str(value)
 				if args.verbose: input('press Enter...')
 			elif opcode == OP_JUMP_IF_FALSE:
 				cond = stack[-1]
 				if not cond: index+= value 
-				value = (value, cond)
+				value = ('!' if cond else '') + 'jump ' + str(value)
 				if args.verbose: input('press Enter...')
 			elif opcode == OP_EQ: 
 				value = stack[-2] == stack[-1]
