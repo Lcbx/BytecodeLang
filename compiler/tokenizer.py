@@ -49,41 +49,48 @@ class Tokenizer:
 		self.last = self.current
 		self.current = self.readCharacter()
 	
+	
+	def checkIndentation(self):
+		level = 0
+		# eol and indentation level
+		while self.current == '\t':
+			level +=1
+			self.advance()
+		return level
+	
 	# generates 1 token at a time
 	def _next(self):
 		advance = self.advance
 		
-		# ignore \n == eol
-		if self.current == '\n':
-			advance()
-		
 		#print("token line ", self.line, ",", self.column, ":", self.last, ",", self.current)
-		# indentation level
-		if self.column == 0:
-			level = 0
-			while self.current == '\t':
-				level +=1
-				advance()
-			if level != 0:
-				return TABS(level)
+		
+		# indenation level
+		level = 0
 		
 		# non-relevant space
-		while self.current.isspace():
-			advance()
-		
-		# comments
-		if self.current == '#':
-			while self.current != '\n':
+		while self.current.isspace() or self.current == '#':
+			level = 0
+			# eol
+			if self.current == '\n':
 				advance()
-			advance()
+				level = self.checkIndentation()
+			# comments
+			elif self.current == '#':
+				while self.current != '\n':
+					advance()
+			else:
+				advance()
+		
+		# if we have an indentation level, report it
+		if level != 0:
+			return TABS(level)
 		
 		# if its an empty string, eof
 		if self.current == '':
 			return EOF(f'line {self.line}')
 		
-		
 		# auxiliary
-		if self.current in '\t[]{}()':
+		if self.current in '[]{}()':
 			aux = self.current
 			advance()
 			return AUX(aux)
@@ -150,7 +157,7 @@ class Tokenizer:
 				return INT(int(n))
 				
 		advance()
-		return EOF(f'unhandled token : {self.current}')
+		return EOF(f'unhandled token {self} : {self.current}')
 	
 	
 	# enrich token with context
