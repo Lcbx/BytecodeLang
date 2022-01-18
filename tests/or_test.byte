@@ -1,9 +1,9 @@
-1012 +12
 4<6 or 45==45 or 23==32
-1024
+'should jump to line 3 after 4<6'
 23==32 or 45==46 or 4<6
-1024
-23==32 or 45==45 or 4<6
-1024
-23==23 and 45==46 or 4<6
+'should execute all line 3'
+23==23 or 45==45 or 4<6
+'should jump to value 1024 after 45 == 45'
+33 == 11 * 3 or 23 == 23
+'should jump to value 1024 after 33 == 11 * 3'
 1024

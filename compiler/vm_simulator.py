@@ -25,8 +25,10 @@ with open(args.input,'rb') as file:
 		opcode = content[index]
 		opName = opcodes[opcode].name
 		bytesConsumed = opcodes[opcode].bytesConsumed
+		
 		PADDING = ' ' * (5 - len(str(index)))
 		print(f'{index}{PADDING}', end='\t')
+		
 		value = ''
 		index+=1
 		if opcode == OP_STRING:
@@ -56,6 +58,14 @@ with open(args.input,'rb') as file:
 					value = struct.unpack(fmt, content[index:index+bytesConsumed])[0]
 					index += bytesConsumed
 		
+		
+		shouldWait = False
+		
+		def checkJump(offset):
+			global shouldWait
+			if index > len(content) or index < 0: print('out of bounds jump !')
+			if args.verbose: shouldWait = True
+			
 		try:
 			if opcode == NO_OP: 
 				pass
@@ -88,19 +98,21 @@ with open(args.input,'rb') as file:
 				value = stack[-1]
 				stack.pop()
 			elif opcode == OP_JUMP:
-				index+= value
-				value = f'jumped {value}'
-				if args.verbose: input('press Enter...')
+				offset = value
+				value = f'jumped {offset}'
+				checkJump(offset)
 			elif opcode == OP_JUMP_IF:
 				cond = stack[-1]
-				if cond: index += value 
+				offset = value
+				if cond: index += offset
 				value = ('' if cond else '!') + 'jump ' + str(value)
-				if args.verbose: input('press Enter...')
+				checkJump(offset)
 			elif opcode == OP_JUMP_IF_FALSE:
 				cond = stack[-1]
-				if not cond: index+= value 
+				offset = value
+				if not cond: index += offset
 				value = ('!' if cond else '') + 'jump ' + str(value)
-				if args.verbose: input('press Enter...')
+				checkJump(offset)
 			elif opcode == OP_EQ: 
 				value = stack[-2] == stack[-1]
 				stack.pop()
@@ -174,3 +186,4 @@ with open(args.input,'rb') as file:
 			print(e)
 		finally:
 			print(opName, '=>', value, '--')
+			if shouldWait: input('press Enter...')

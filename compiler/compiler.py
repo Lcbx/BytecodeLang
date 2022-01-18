@@ -47,11 +47,23 @@ def declare(name):
 	Variables[name] = len(Variables)
 
 # expected identation level
-indents = 0
+indentsExpected = 0
 
 # packs a jump offset into 2 bytes
 def jumpOffset(offset):
 	return struct.pack('h', offset)
+
+# TODOOOO: remove pop instructions and make JUMP_IF and JUMP_IF_FALSE automatically pop the stack
+
+#def JumpIf(condition, offset):
+#	jumpOp = OP_JUMP_IF
+#	
+#	# transform 'jump_if not condition' into jump_if_not condition'
+#	if condition[-1] == OP_NEG:
+#		jumpOp = OP_JUMP_IF_FALSE
+#		condition = condition[:-1]
+#	
+#	return [ *condition, jumpOp, *jumpOffset(offset), OP_POP]
 
 ####################################
 ## the recursive code generator
@@ -69,10 +81,12 @@ def Program(file):
 	return prog
 
 def Block():
-	global indents
+	global indentsExpected
 	inst = []
+	
+	# while there's more instructions to parse within the same indentation level
 	while True:
-		if indents!=0 and not consumeExact(TABS, indents):
+		if indentsExpected!=0 and not consumeExact(TABS, indentsExpected):
 			return inst
 		
 		res = Statement()
@@ -114,10 +128,10 @@ def Assignment():
 	else: Error(f'lone variable {name}')
 
 def WhileStatement():
-	global indents
+	global indentsExpected
 	cond = Expression()
 	if len(cond)==0:  Error('while missing condition to evaluate')
-	indents += 1
+	indentsExpected += 1
 	inst = Block()
 	if len(inst)==0:  Error('while missing instructions to loop over')
 	# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
@@ -134,34 +148,51 @@ def Expression():
 	return OrExpression()
 
 def OrExpression():
-	conditions = []
-	inst = AndExpression()
+	firstCondition = AndExpression()
+	lastCondition = firstCondition
+	otherConditions = []
+	
 	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consumeExact(NAME, 'or'):
-		if len(inst)==0:  Error('or expression missing left operand')
-		inst2 = AndExpression()
-		if len(inst2)==0: Error('or expression missing right operand')
-		conditions.append(inst2)
-		total_offset+= (len(inst2)+ OVERHEAD)
-	for cond in conditions:
-		inst.extend([ OP_JUMP_IF, *jumpOffset(total_offset), OP_POP, *cond ])
+		if len(lastCondition)==0:  Error('or expression missing left operand')
+		
+		otherCondition = AndExpression()
+		if len(otherCondition)==0: Error('or expression missing right operand')
+		otherConditions.append(otherCondition)
+		
+		total_offset+= (len(otherCondition)+ OVERHEAD)
+		lastCondition = otherCondition
+	
+	inst = firstCondition
+	for condition in otherConditions:
+		inst.extend([ OP_JUMP_IF, *jumpOffset(total_offset), OP_POP, *condition ])
+		total_offset -= (len(condition) + OVERHEAD)
+	
 	return inst
 
 def AndExpression():
-	conditions = []
-	inst = Equality()
-	OVERHEAD = 4 # 4 bytes = OP_JUMP, short (2 bytes), OP_POP
+	firstCondition = Equality()
+	lastCondition = firstCondition
+	otherConditions = []
+	
+	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consumeExact(NAME, 'and'):
-		if len(inst)==0:  Error('and expression missing left operand')
-		inst2 = Equality()
-		if len(inst2)==0: Error('and expression missing right operand')
-		conditions.append(inst2)
-		total_offset+= (len(inst2)+ OVERHEAD)
-	for cond in conditions:
-		inst.extend([ OP_JUMP_IF_FALSE, *jumpOffset(total_offset), OP_POP, *cond ])
-		total_offset-= (len(cond)+ OVERHEAD)
+		if len(lastCondition)==0:  Error('and expression missing left operand')
+		
+		otherCondition = Equality()
+		if len(otherCondition)==0: Error('and expression missing right operand')
+		otherConditions.append(otherCondition)
+		
+		total_offset+= (len(otherCondition)+ OVERHEAD)
+		lastCondition = otherCondition
+	
+	inst = firstCondition
+	for condition in otherConditions:
+		inst.extend([ OP_JUMP_IF_FALSE, *jumpOffset(total_offset), OP_POP, *condition ])
+		total_offset -= (len(condition) + OVERHEAD)
+	
 	return inst
 
 def Equality():
@@ -289,6 +320,6 @@ if __name__ == '__main__':
 		
 	print(errorCount, 'errors')
 	if errorCount == 0 :
-		vprint('instructions', instructions)
+		vprint( len(instructions), 'instructions', instructions)
 		with open(args.output,'wb') as file:
 			file.write(bytes(instructions))
