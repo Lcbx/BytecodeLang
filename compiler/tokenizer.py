@@ -65,24 +65,25 @@ class Tokenizer:
 		#print("token line ", self.line, ",", self.column, ":", self.last, ",", self.current)
 		
 		# indenation level
-		level = 0
+		level = None
 		
 		# non-relevant space
 		while self.current.isspace() or self.current == '#':
-			level = 0
-			# eol
-			if self.current == '\n':
-				advance()
+			level = None
+			# start of line
+			if self.column == 0 and self.current == '\t':
 				level = self.checkIndentation()
+				# Note: if a space character is put directly after indentation,
+				# a TABS token will not be generated, and probably result in an error at compile time
 			# comments
 			elif self.current == '#':
-				while self.current != '\n':
+				while self.current != '\n' and self.current != '':
 					advance()
 			else:
 				advance()
 		
 		# if we have an indentation level, report it
-		if level != 0:
+		if level:
 			return TABS(level)
 		
 		# if its an empty string, eof

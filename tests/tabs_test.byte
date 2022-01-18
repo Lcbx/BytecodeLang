@@ -1,16 +1,12 @@
 def a = 1
-	def b = 2
+	
+def b = 2
 	def c = 3
 def d = 4
-def e = 5
+def e = 5 # comment1
 def f = 6
 		def g = 7
 		def h = 8
-		def i = 9	
-def j = 10 # hi mark
+		def i = 9 # comment2
 	
-		
-		
-	# hello	
-	def k = 11
-# world
+	# comment 3
