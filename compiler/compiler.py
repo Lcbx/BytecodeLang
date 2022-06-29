@@ -40,11 +40,21 @@ def Error(*msg):
 	global errorCount
 	errorCount += 1
 	print(f'Error {token.context} :', *msg)
+ 
+
+# used for type analysis at compile time
+# for now it only handles string, int, float, bool
+# NOTE : compile time is significantly slowed by the need to allocate those nodes
+@dataclass
+class AST_Node:
+	type: 		object	# uses python types for now
+	opcodes:	list 	# the generated code
+
 
 # the variables
 Variables = {}
-def declare(name):
-	Variables[name] = len(Variables)
+def declare(type, name):
+	Variables[name] = AST_Node(type, len(Variables))
 
 # expected identation level
 indentsExpected = 0
@@ -53,7 +63,7 @@ indentsExpected = 0
 def jumpOffset(offset):
 	return struct.pack('h', offset)
 
-# TODOOOO: remove pop instructions and make JUMP_IF and JUMP_IF_FALSE automatically pop the stack
+# TODO: remove pop instructions and make JUMP_IF and JUMP_IF_FALSE automatically pop the stack (what of match statements though ?)
 
 #def JumpIf(condition, offset):
 #	jumpOp = OP_JUMP_IF
@@ -100,7 +110,7 @@ def Statement():
 	inst =  Declaration() 	 if consumeExact(NAME, 'def')   else \
 			WhileStatement() if consumeExact(NAME, 'while') else \
 			Assignment()	 if consume(NAME)				else \
-			Expression() # temporary
+			Expression().opcodes # temporary
 	
 	return inst
 
@@ -109,9 +119,9 @@ def Declaration():
 		name = consumed
 		if name in Variables: Error(name, 'already declared')
 		if consume(OP, '='):
-			declare(name)
 			inst = Expression()
-			return inst
+			declare(inst.type, name)
+			return inst.opcodes
 		elif consume(AUX, '('): Error('functions not implemented yet')
 	else: Error('no name after def')
 	
@@ -119,7 +129,7 @@ def Assignment():
 	name = consumed
 	if name not in Variables: Error('unknown variable', name)
 	elif consume(OP, '='):
-		inst = [ *Expression(), OP_STORE, Variables[name] ]
+		inst = [ *Expression().opcodes, OP_STORE, Variables[name].opcodes ] # TODO: fix: index of var is stored in opcode field
 		return inst
 	elif consume(AUX, '('): Error('functions not implemented yet')
 	
@@ -130,9 +140,10 @@ def Assignment():
 def WhileStatement():
 	global indentsExpected
 	cond = Expression()
-	if len(cond)==0:  Error('while missing condition to evaluate')
+	if len(cond.opcodes)==0:  Error('while missing condition to evaluate')
+	if cond.type != bool:  Error('while condition is not boolean', cond.type)
 	indentsExpected += 1
-	inst = Block()
+	inst = Block() # Block returns instructions, not AST_Node
 	if len(inst)==0:  Error('while missing instructions to loop over')
 	# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
 	# maybe use a compiler function for this
@@ -141,10 +152,11 @@ def WhileStatement():
 	# 4 = OP_JUMP_IF_FALSE, short, OP_POP
 	# 5 = OP_JUMP_IF_FALSE, short, OP_POP, OP_JUMP
 	
-	inst = [*cond, OP_JUMP_IF_FALSE, *jumpOffset( len(inst)+4 ), OP_POP, *inst, OP_JUMP, *jumpOffset( - (len(inst)+len(cond)+5) ) ]
+	inst = [*cond.opcodes, OP_JUMP_IF_FALSE, *jumpOffset( len(inst)+4 ), OP_POP, *inst, OP_JUMP, *jumpOffset( - (len(inst)+len(cond.opcodes)+5) ) ]
 	return inst
 
 def Expression():
+	# Note : over expresion, AST_Node is not used, we just take instructions directly
 	return OrExpression()
 
 def OrExpression():
@@ -155,19 +167,21 @@ def OrExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consumeExact(NAME, 'or'):
-		if len(lastCondition)==0:  Error('or expression missing left operand')
+		if len(lastCondition.opcodes)==0:  Error('or expression missing left operand')
+		if lastCondition.type != bool: Error('or expression left operand is not boolean', lastCondition.type)
 		
 		otherCondition = AndExpression()
-		if len(otherCondition)==0: Error('or expression missing right operand')
+		if len(otherCondition.opcodes)==0: Error('or expression missing right operand')
+		if otherCondition.type != bool: Error('or expression right operand is not boolean', otherCondition.type)
 		otherConditions.append(otherCondition)
 		
-		total_offset+= (len(otherCondition)+ OVERHEAD)
+		total_offset+= (len(otherCondition.opcodes)+ OVERHEAD)
 		lastCondition = otherCondition
 	
 	inst = firstCondition
 	for condition in otherConditions:
-		inst.extend([ OP_JUMP_IF, *jumpOffset(total_offset), OP_POP, *condition ])
-		total_offset -= (len(condition) + OVERHEAD)
+		inst.opcodes.extend([ OP_JUMP_IF, *jumpOffset(total_offset), OP_POP, *condition.opcodes ])
+		total_offset -= (len(condition.opcodes) + OVERHEAD)
 	
 	return inst
 
@@ -179,19 +193,21 @@ def AndExpression():
 	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
 	total_offset = 1 - OVERHEAD
 	while consumeExact(NAME, 'and'):
-		if len(lastCondition)==0:  Error('and expression missing left operand')
+		if len(lastCondition.opcodes)==0:  Error('and expression missing left operand')
+		if lastCondition.type != bool: Error('and expression left operand is not boolean', lastCondition.type )
 		
 		otherCondition = Equality()
-		if len(otherCondition)==0: Error('and expression missing right operand')
+		if len(otherCondition.opcodes)==0: Error('and expression missing right operand')
+		if otherCondition.type != bool: Error('and expression right operand is not boolean', otherCondition.type )
 		otherConditions.append(otherCondition)
 		
-		total_offset+= (len(otherCondition)+ OVERHEAD)
+		total_offset+= (len(otherCondition.opcodes)+ OVERHEAD)
 		lastCondition = otherCondition
 	
 	inst = firstCondition
 	for condition in otherConditions:
-		inst.extend([ OP_JUMP_IF_FALSE, *jumpOffset(total_offset), OP_POP, *condition ])
-		total_offset -= (len(condition) + OVERHEAD)
+		inst.opcodes.extend([ OP_JUMP_IF_FALSE, *jumpOffset(total_offset), OP_POP, *condition.opcodes ])
+		total_offset -= (len(condition.opcodes) + OVERHEAD)
 	
 	return inst
 
@@ -199,12 +215,11 @@ def Equality():
 	inst = Comparison()
 	if 	consumeExact(OP, '==') or consumeExact(OP, '!='):
 		op = consumed
-		if len(inst)==0: Error('missing left operand before', op)
+		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Comparison()
-		inst.extend(inst2)
-		if len(inst2)!=0:
-			if 	 op == '==': inst.append(OP_EQ)
-			elif op == '!=': inst.append(OP_NEQ)
+		if len(inst2.opcodes)!=0:
+			if 	 op == '==': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_EQ])
+			elif op == '!=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_NEQ])
 		else: Error('missing right operand after', op)
 	return inst
 
@@ -212,14 +227,15 @@ def Comparison():
 	inst = Addition()
 	if consumeExact(OP, '>') or consumeExact(OP, '>=') or consumeExact(OP, '<') or consumeExact(OP, '<='):
 		op = consumed
-		if len(inst)==0: Error('missing left operand before', op)
+		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Addition()
-		inst.extend(inst2)
-		if len(inst2)!=0:
-			if 	 op == '>':	 inst.append(OP_GT)
-			elif op == '>=': inst.append(OP_GTE)
-			elif op == '<':	 inst.append(OP_LT)
-			elif op == '<=': inst.append(OP_LTE)
+		if len(inst2.opcodes)!=0:
+			if inst.type in (float, int) and inst2.type == inst.type:
+				if 	 op == '>':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GT])
+				elif op == '>=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GTE])
+				elif op == '<':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LT])
+				elif op == '<=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LTE])
+			else: Error('operand types do not match', op)
 		else: Error('missing right operand after', op)
 	return inst
 
@@ -236,12 +252,13 @@ def Addition():
 	inst = Multiply()
 	while consume(OP,'+-'):
 		op = consumed
-		if len(inst)==0: Error('missing left operand before', op)
+		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Multiply()
-		inst.extend(inst2)
-		if  len(inst2)!=0:
-			if 	 op == '+':	inst.append(OP_ADD)
-			elif op == '-': inst.append(OP_SUB)
+		if  len(inst2.opcodes)!=0:
+			if inst2.type == inst.type:
+				if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
+				elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
+			else: Error('operand types do not match', op)
 		else: Error('missing right operand after', op)
 	if negate: inst.append(OP_NEG)
 	return inst
@@ -251,41 +268,43 @@ def Multiply():
 	inst = Primary()
 	while consume(OP, '*/'):
 		op = consumed
-		if len(inst)==0: Error('missing left operand before', op)
+		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Primary()
-		inst.extend(inst2)
-		if len(inst2)!=0:
-			if 	 op == '*':	inst.append(OP_MUL)
-			elif op == '/':	inst.append(OP_DIV)
+		if len(inst2.opcodes)!=0:
+			if inst.type in (float, int) and inst2.type == inst.type:
+				if 	 op == '*' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_MUL])
+				elif op == '/' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_DIV])
+			else: Error('operand types do not match', op)
 		else: Error('missing right operand after', op)
 	return inst
 
 
 def Primary():
 	global token
-	inst = []
+	inst = AST_Node(None, [])
 
 	if consume(NAME):
 		name = consumed
 		if consumed in Variables:
-			inst = [ OP_LOAD, Variables[name] ]
+			var = Variables[name]
+			inst = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field
 		else: Error('unknown name', name)
 
 	elif consume(FLOAT):
-		inst = [ OP_FLOAT, *struct.pack('f', consumed) ]
+		inst = AST_Node(float, [ OP_FLOAT, *struct.pack('f', consumed) ])
 	
 	elif consume(INT):
 		val = consumed
-		if 	 val>=-2**7 and val<2**7: 	inst = [ OP_INT1, *struct.pack('b', val) ]
-		elif val>=-2**15 and val<2**15:	inst = [ OP_INT2, *struct.pack('h', val) ]
-		elif val>=-2**31 and val<2**31:	inst = [ OP_INT4, *struct.pack('i', val) ]
+		if 	 val>=-2**7 and val<2**7: 	inst = AST_Node(int, [ OP_INT1, *struct.pack('b', val) ])
+		elif val>=-2**15 and val<2**15:	inst = AST_Node(int, [ OP_INT2, *struct.pack('h', val) ])
+		elif val>=-2**31 and val<2**31:	inst = AST_Node(int, [ OP_INT4, *struct.pack('i', val) ])
 		else: Error('value too high to be an int (use a float ?)')
 	
 	elif consume(STRING):
-		inst = [ OP_STRING, *map(ord,consumed), 0 ]
+		inst = AST_Node(str, [ OP_STRING, *map(ord,consumed), 0 ])
 	
 	elif consume(AUX, '('):
-		inst = OrExpression()
+		inst = Expression()
 		if not consume(AUX, ')'):
 			Error('closing parenthesis ) missing')
 	

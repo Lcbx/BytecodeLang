@@ -5,22 +5,18 @@ tokenize_Err:
 
 __SECTION__
 compile_Out:
-0 errors
+Error line 1, column 7 : or expression right operand is not boolean <class 'int'>
+Error line 1, column 12 : operand types do not match +
+2 errors
 __SECTION__
 compile_Err:
 
 __SECTION__
 simulation_Out:
-0    	OP_INT1 => 45 --
-2    	OP_INT1 => 5 --
-4    	OP_INT1 => 8 --
-6    	OP_MUL => 40 --
-7    	OP_ADD => 85 --
-8    	OP_INT2 => 1000 --
-11   	OP_LT => True --
-12   	OP_JUMP_IF => jump 3 --
-18   	OP_STRING => hello --
-25   	OP_INT1 => 23 --
-27   	OP_ADD => hello23 --
+
 __SECTION__
 simulation_Err:
+Traceback (most recent call last):
+  File "C:\Users\lucco\Desktop\tests\pyLang\compiler\vm_simulator.py", line 17, in <module>
+    with open(args.input,'rb') as file:
+FileNotFoundError: [Errno 2] No such file or directory: 'tests/wrong_behaviour.hex'
