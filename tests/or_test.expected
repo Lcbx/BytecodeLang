@@ -1,5 +1,5 @@
 tokenize_Out:
-INT: 4, OP: <, INT: 6, NAME: or, INT: 45, OP: ==, INT: 45, NAME: or, INT: 23, OP: ==, INT: 32, STRING: should jump to line 3 after 4<6, INT: 23, OP: ==, INT: 32, NAME: or, INT: 45, OP: ==, INT: 46, NAME: or, INT: 4, OP: <, INT: 6, STRING: should execute all line 3, INT: 23, OP: ==, INT: 23, NAME: or, INT: 45, OP: ==, INT: 45, NAME: or, INT: 4, OP: <, INT: 6, STRING: should jump to value 1024 after 45 == 45, INT: 33, OP: ==, INT: 11, OP: *, INT: 3, NAME: or, INT: 23, OP: ==, INT: 23, STRING: should jump to value 1024 after 33 == 11 * 3, INT: 1024, EOF: line 8
+STRING: should jump to line 3 after 4<6, INT: 4, OP: <, INT: 6, NAME: or, INT: 45, OP: ==, INT: 45, NAME: or, INT: 23, OP: ==, INT: 32, STRING: should execute all line 4, INT: 23, OP: ==, INT: 32, NAME: or, INT: 45, OP: ==, INT: 46, NAME: or, INT: 4, OP: <, INT: 6, STRING: should jump to line 7 after 23==23, INT: 23, OP: ==, INT: 23, NAME: or, INT: 45, OP: ==, INT: 45, NAME: or, INT: 4, OP: <, INT: 6, STRING: should jump to value 1024 after 33 == 11 * 3, INT: 33, OP: ==, INT: 11, OP: *, INT: 3, NAME: or, INT: 23, OP: ==, INT: 23, INT: 1024, EOF: line 8
 __SECTION__
 tokenize_Err:
 
@@ -11,37 +11,37 @@ compile_Err:
 
 __SECTION__
 simulation_Out:
-0    	OP_INT1 => 4 --
-2    	OP_INT1 => 6 --
-4    	OP_LT => True --
-5    	OP_JUMP_IF => jump 15 --
-23   	OP_STRING => should jump to line 3 after 4<6 --
-56   	OP_INT1 => 23 --
-58   	OP_INT1 => 32 --
-60   	OP_EQ => False --
-61   	OP_JUMP_IF => !jump 15 --
-64   	OP_POP => False --
-65   	OP_INT1 => 45 --
-67   	OP_INT1 => 46 --
-69   	OP_EQ => False --
-70   	OP_JUMP_IF => !jump 6 --
-73   	OP_POP => False --
-74   	OP_INT1 => 4 --
-76   	OP_INT1 => 6 --
-78   	OP_LT => True --
-79   	OP_STRING => should execute all line 3 --
-106  	OP_INT1 => 23 --
-108  	OP_INT1 => 23 --
-110  	OP_EQ => True --
-111  	OP_JUMP_IF => jump 15 --
-129  	OP_STRING => should jump to value 1024 after 45 == 45 --
-171  	OP_INT1 => 33 --
-173  	OP_INT1 => 11 --
-175  	OP_INT1 => 3 --
-177  	OP_MUL => 33 --
-178  	OP_EQ => True --
-179  	OP_JUMP_IF => jump 6 --
-188  	OP_STRING => should jump to value 1024 after 33 == 11 * 3 --
-234  	OP_INT2 => 1024 --
+0    	OP_STRING => should jump to line 3 after 4<6 --
+33   	OP_INT1 => 4 --
+35   	OP_INT1 => 6 --
+37   	OP_LT => True --
+38   	OP_JUMP_IF => jump 15 --
+56   	OP_STRING => should execute all line 4 --
+83   	OP_INT1 => 23 --
+85   	OP_INT1 => 32 --
+87   	OP_EQ => False --
+88   	OP_JUMP_IF => !jump 15 --
+91   	OP_POP => False --
+92   	OP_INT1 => 45 --
+94   	OP_INT1 => 46 --
+96   	OP_EQ => False --
+97   	OP_JUMP_IF => !jump 6 --
+100  	OP_POP => False --
+101  	OP_INT1 => 4 --
+103  	OP_INT1 => 6 --
+105  	OP_LT => True --
+106  	OP_STRING => should jump to line 7 after 23==23 --
+142  	OP_INT1 => 23 --
+144  	OP_INT1 => 23 --
+146  	OP_EQ => True --
+147  	OP_JUMP_IF => jump 15 --
+165  	OP_STRING => should jump to value 1024 after 33 == 11 * 3 --
+211  	OP_INT1 => 33 --
+213  	OP_INT1 => 11 --
+215  	OP_INT1 => 3 --
+217  	OP_MUL => 33 --
+218  	OP_EQ => True --
+219  	OP_JUMP_IF => jump 6 --
+228  	OP_INT2 => 1024 --
 __SECTION__
 simulation_Err:
