@@ -8,3 +8,6 @@ while n > 0
 	b = a
 	a = c
 	n = n -1
+
+# the Nth number of the suite
+a

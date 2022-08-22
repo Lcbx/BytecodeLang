@@ -9,12 +9,17 @@ import struct
 
 token = None 	# token to consume
 consumed = None # last token consumed
+
+def peekType(Type):
+	global token
+	return type(token) is Type
+
 # Type : 	type of token accepted
 # accepted: list of possible char accepted
 def consume(Type, accepted=None):
 	global token
 	global consumed
-	if type(token) is Type:
+	if peekType(Type):
 		if accepted==None or token.value in accepted:
 			#print(token)
 			consumed = token.value
@@ -26,7 +31,7 @@ def consume(Type, accepted=None):
 def consumeExact(Type, accepted):
 	global token
 	global consumed
-	if type(token) is Type:
+	if peekType(Type):
 		if token.value == accepted:
 			#print(token)
 			consumed = token.value
@@ -99,6 +104,8 @@ def Block():
 	# while there's more instructions to parse within the same indentation level
 	while True:
 		if indentsExpected!=0 and not consumeExact(TABS, indentsExpected):
+			# indents expected is set to whatever the next indentation is
+			indentsExpected = consumed if consume(TABS) else 0
 			return inst
 		
 		res = Statement()
@@ -111,7 +118,7 @@ def Block():
 def Statement():
 	inst =  Declaration() 	 if consumeExact(NAME, 'def')   else \
 			WhileStatement() if consumeExact(NAME, 'while') else \
-			Assignment()	 if consume(NAME)				else \
+			Assignment()	 if peekType(NAME)				else \
 			Expression().opcodes # temporary
 	
 	return inst
@@ -128,13 +135,13 @@ def Declaration():
 	else: Error('no name after def')
 	
 def Assignment():
-	name = consumed
-	if name not in Variables: Error('unknown variable', name)
-	elif consume(OP, '='):
-		inst = [ *Expression().opcodes, OP_STORE, Variables[name].opcodes ] # TODO: fix: index of var is stored in opcode field
-		return inst
-	elif consume(AUX, '('): Error('functions not implemented yet')
-	
+	if consume(NAME):
+		name = consumed
+		if name not in Variables: Error('unknown variable', name)
+		elif consume(OP, '='):
+			inst = [ *Expression().opcodes, OP_STORE, Variables[name].opcodes ] # TODO: fix: index of var is stored in opcode field
+			return inst
+		elif consume(AUX, '('): Error('functions not implemented yet')
 	# NOTE: we allow lone expressions but not variables
 	# 		this means that `-a` is allowed but `a` is not
 	else: Error(f'lone variable {name}')

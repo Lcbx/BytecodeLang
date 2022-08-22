@@ -1,5 +1,5 @@
 tokenize_Out:
-NAME: def, NAME: n, OP: =, INT: 10, NAME: def, NAME: a, OP: =, INT: 0, NAME: def, NAME: b, OP: =, INT: 1, NAME: def, NAME: c, OP: =, INT: 0, NAME: while, NAME: n, OP: >, INT: 0, TABS: 1, NAME: c, OP: =, NAME: a, OP: +, NAME: b, TABS: 1, NAME: b, OP: =, NAME: a, TABS: 1, NAME: a, OP: =, NAME: c, TABS: 1, NAME: n, OP: =, NAME: n, OP: -, INT: 1, NAME: n, OP: =, INT: 10, OP: +, INT: 5, EOF: line 12
+NAME: def, NAME: n, OP: =, INT: 10, NAME: def, NAME: a, OP: =, INT: 0, NAME: def, NAME: b, OP: =, INT: 1, NAME: def, NAME: c, OP: =, INT: 0, NAME: while, NAME: n, OP: >, INT: 0, TABS: 1, NAME: c, OP: =, NAME: a, OP: +, NAME: b, TABS: 1, NAME: b, OP: =, NAME: a, TABS: 1, NAME: a, OP: =, NAME: c, TABS: 1, NAME: n, OP: =, NAME: n, OP: -, INT: 1, NAME: a, EOF: line 12
 __SECTION__
 tokenize_Err:
 
