@@ -89,7 +89,7 @@ def generateCodeTestResults(filePath):
 	result.tokenize_Out = _prepString(tokenize.stdout)
 	result.tokenize_Err = _prepString(tokenize.stderr)
 	
-	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-i', filePath], capture_output=True)
+	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-vi', filePath], capture_output=True)
 	result.compile_Out = _prepString(compile.stdout)
 	result.compile_Err = _prepString(compile.stderr)
 	

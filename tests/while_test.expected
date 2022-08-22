@@ -1,11 +1,12 @@
 tokenize_Out:
-NAME: def, NAME: a, OP: =, INT: 5, NAME: while, NAME: a, OP: >, INT: 1, TABS: 1, NAME: a, OP: =, NAME: a, OP: -, INT: 1, EOF: line 2
+NAME: def, NAME: a, OP: =, INT: 5, NAME: while, NAME: a, OP: >, INT: 1, TABS: 1, NAME: a, OP: =, NAME: a, OP: -, INT: 1, NAME: def, NAME: b, OP: =, INT: 34, NAME: b, OP: ==, INT: 33, EOF: line 5
 __SECTION__
 tokenize_Err:
 
 __SECTION__
 compile_Out:
 0 errors
+21 instructions [4, 5, 9, 0, 4, 1, 19, 14, 11, 0, 11, 9, 0, 4, 1, 22, 10, 0, 12, 239, 255]
 __SECTION__
 compile_Err:
 
@@ -22,5 +23,35 @@ simulation_Out:
 15   	OP_SUB => 4 --
 16   	OP_STORE => var0 = 4 (was 5) --
 18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (4) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 3 --
+16   	OP_STORE => var0 = 3 (was 4) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (3) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 2 --
+16   	OP_STORE => var0 = 2 (was 3) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => True --
+7    	OP_JUMP_IF_FALSE => !jump 11 --
+10   	OP_POP => True --
+11   	OP_LOAD => var0 (2) --
+13   	OP_INT1 => 1 --
+15   	OP_SUB => 1 --
+16   	OP_STORE => var0 = 1 (was 2) --
+18   	OP_JUMP => jumped -17 --
+4    	OP_INT1 => 1 --
+6    	OP_GT => False --
+7    	OP_JUMP_IF_FALSE => jump 11 --
 __SECTION__
 simulation_Err:

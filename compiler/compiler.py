@@ -46,15 +46,14 @@ def Error(*msg):
 # for now it only handles string, int, float, bool
 # NOTE : compile time is significantly slowed by the need to allocate those nodes
 @dataclass
-class AST_Node:
+class AST_Node: # AST means Abstract Syntax Tree
 	type: 		object	# uses python types for now
 	opcodes:	list 	# the generated code
 
-
-# the variables
 Variables = {}
-def declare(type, name):
-	Variables[name] = AST_Node(type, len(Variables))
+# the variables
+def declare(variables, type, name):
+	variables[name] = AST_Node(type, len(Variables))
 
 # expected identation level
 indentsExpected = 0
@@ -94,6 +93,9 @@ def Block():
 	global indentsExpected
 	inst = []
 	
+	#variables = {}
+	#methods = {}
+	
 	# while there's more instructions to parse within the same indentation level
 	while True:
 		if indentsExpected!=0 and not consumeExact(TABS, indentsExpected):
@@ -120,7 +122,7 @@ def Declaration():
 		if name in Variables: Error(name, 'already declared')
 		if consume(OP, '='):
 			inst = Expression()
-			declare(inst.type, name)
+			declare(Variables, inst.type, name)
 			return inst.opcodes
 		elif consume(AUX, '('): Error('functions not implemented yet')
 	else: Error('no name after def')
@@ -149,8 +151,8 @@ def WhileStatement():
 	# maybe use a compiler function for this
 	
 	# in this set of instructions :
-	# 4 = OP_JUMP_IF_FALSE, short, OP_POP
-	# 5 = OP_JUMP_IF_FALSE, short, OP_POP, OP_JUMP
+	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
+	# 5 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
 	
 	inst = [*cond.opcodes, OP_JUMP_IF_FALSE, *jumpOffset( len(inst)+4 ), OP_POP, *inst, OP_JUMP, *jumpOffset( - (len(inst)+len(cond.opcodes)+5) ) ]
 	return inst

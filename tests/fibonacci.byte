@@ -1,0 +1,10 @@
+def n = 10
+
+def a = 0
+def b = 1
+def c = 0
+while n > 0
+	c = a + b
+	b = a
+	a = c
+	n = n -1

@@ -1,21 +1,63 @@
 tokenize_Out:
-NAME: hello2, FLOAT: 13.0, OP: +, INT: 1020, INT: 3242, STRING: great, STRING: 'I love RocknRoll', OP: -, INT: 8, OP: *, FLOAT: 5.0, INT: 8, OP: *, INT: 3, OP: /, INT: 2, OP: -, INT: 5, OP: *, INT: 2, INT: 5, OP: <, INT: 4, INT: 17, OP: ==, INT: 17, INT: 5, OP: <, INT: 4, OP: !=, INT: 34, INT: 4, OP: <, INT: 6, NAME: and, INT: 45, OP: ==, INT: 45, NAME: and, INT: 23, OP: ==, INT: 32, INT: 23, OP: ==, INT: 32, NAME: and, INT: 45, OP: ==, INT: 45, NAME: and, INT: 4, OP: <, INT: 6, INT: 1024, EOF: line 14
+OP: -, INT: 8, OP: *, INT: 5, FLOAT: 13.0, OP: +, FLOAT: 1020.0, INT: 3242, STRING: great, STRING: 'I love RocknRoll', INT: 8, OP: *, INT: 3, OP: /, INT: 2, OP: -, INT: 5, OP: *, INT: 2, INT: 5, OP: <, INT: 4, INT: 17, OP: ==, INT: 17, INT: 5, OP: <, INT: 4, OP: !=, INT: 34, INT: 4, OP: <, INT: 6, NAME: and, INT: 45, OP: ==, INT: 45, NAME: and, INT: 23, OP: ==, INT: 32, INT: 23, OP: ==, INT: 32, NAME: and, INT: 45, OP: ==, INT: 45, NAME: and, INT: 4, OP: <, INT: 6, INT: 1024, EOF: line 13
 __SECTION__
 tokenize_Err:
 
 __SECTION__
 compile_Out:
-Error line 1, column 3 : unknown variable hello2
-1 errors
+0 errors
+127 instructions [4, 248, 4, 5, 23, 7, 0, 0, 80, 65, 7, 0, 0, 127, 68, 21, 5, 170, 12, 8, 103, 114, 101, 97, 116, 0, 8, 39, 73, 32, 108, 111, 118, 101, 32, 82, 111, 99, 107, 110, 82, 111, 108, 108, 39, 0, 4, 8, 4, 3, 23, 4, 2, 24, 4, 5, 4, 2, 23, 22, 4, 5, 4, 4, 17, 4, 17, 4, 17, 15, 4, 5, 4, 4, 17, 4, 34, 16, 4, 4, 4, 6, 17, 14, 15, 0, 11, 4, 45, 4, 45, 15, 14, 6, 0, 11, 4, 23, 4, 32, 15, 4, 23, 4, 32, 15, 14, 15, 0, 11, 4, 45, 4, 45, 15, 14, 6, 0, 11, 4, 4, 4, 6, 17, 5, 0, 4]
 __SECTION__
 compile_Err:
 
 __SECTION__
 simulation_Out:
-
+0    	OP_INT1 => -8 --
+2    	OP_INT1 => 5 --
+4    	OP_MUL => -40 --
+5    	OP_FLOAT => 13.0 --
+10   	OP_FLOAT => 1020.0 --
+15   	OP_ADD => 1033.0 --
+16   	OP_INT2 => 3242 --
+19   	OP_STRING => great --
+26   	OP_STRING => 'I love RocknRoll' --
+46   	OP_INT1 => 8 --
+48   	OP_INT1 => 3 --
+50   	OP_MUL => 24 --
+51   	OP_INT1 => 2 --
+53   	OP_DIV => 12.0 --
+54   	OP_INT1 => 5 --
+56   	OP_INT1 => 2 --
+58   	OP_MUL => 10 --
+59   	OP_SUB => 2.0 --
+60   	OP_INT1 => 5 --
+62   	OP_INT1 => 4 --
+64   	OP_LT => False --
+65   	OP_INT1 => 17 --
+67   	OP_INT1 => 17 --
+69   	OP_EQ => True --
+70   	OP_INT1 => 5 --
+72   	OP_INT1 => 4 --
+74   	OP_LT => False --
+75   	OP_INT1 => 34 --
+77   	OP_NEQ => True --
+78   	OP_INT1 => 4 --
+80   	OP_INT1 => 6 --
+82   	OP_LT => True --
+83   	OP_JUMP_IF_FALSE => !jump 15 --
+86   	OP_POP => True --
+87   	OP_INT1 => 45 --
+89   	OP_INT1 => 45 --
+91   	OP_EQ => True --
+92   	OP_JUMP_IF_FALSE => !jump 6 --
+95   	OP_POP => True --
+96   	OP_INT1 => 23 --
+98   	OP_INT1 => 32 --
+100  	OP_EQ => False --
+101  	OP_INT1 => 23 --
+103  	OP_INT1 => 32 --
+105  	OP_EQ => False --
+106  	OP_JUMP_IF_FALSE => jump 15 --
+124  	OP_INT2 => 1024 --
 __SECTION__
 simulation_Err:
-Traceback (most recent call last):
-  File "C:\Users\lucco\Desktop\tests\pyLang\compiler\vm_simulator.py", line 17, in <module>
-    with open(args.input,'rb') as file:
-FileNotFoundError: [Errno 2] No such file or directory: 'tests/basic_test.hex'

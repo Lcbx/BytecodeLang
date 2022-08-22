@@ -61,8 +61,10 @@ with open(args.input,'rb') as file:
 		
 		shouldWait = False
 		
-		def checkJump(offset):
+		def apply_jump(offset):
 			global shouldWait
+			global index
+			index += offset
 			if index > len(content) or index < 0: print('out of bounds jump !')
 			if args.verbose: shouldWait = True
 			
@@ -74,7 +76,7 @@ with open(args.input,'rb') as file:
 			elif opcode == OP_TRUE: 
 				stack.append(True)
 			elif opcode == OP_FALSE:
-				stack.append(True)
+				stack.append(False)
 			elif opcode == OP_INT1:
 				stack.append(value)
 			elif opcode == OP_INT2: 
@@ -98,21 +100,16 @@ with open(args.input,'rb') as file:
 				value = stack[-1]
 				stack.pop()
 			elif opcode == OP_JUMP:
-				offset = value
-				value = f'jumped {offset}'
-				checkJump(offset)
+				apply_jump(value)
+				value = f'jumped {value}'
 			elif opcode == OP_JUMP_IF:
 				cond = stack[-1]
-				offset = value
-				if cond: index += offset
+				if cond: apply_jump(value)
 				value = ('' if cond else '!') + 'jump ' + str(value)
-				checkJump(offset)
 			elif opcode == OP_JUMP_IF_FALSE:
 				cond = stack[-1]
-				offset = value
-				if not cond: index += offset
+				if not cond: apply_jump(value)
 				value = ('!' if cond else '') + 'jump ' + str(value)
-				checkJump(offset)
 			elif opcode == OP_EQ: 
 				value = stack[-2] == stack[-1]
 				stack.pop()
