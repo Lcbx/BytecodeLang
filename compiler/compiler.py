@@ -10,10 +10,15 @@ import struct
 token = None 	# token to consume
 consumed = None # last token consumed
 
+indentsExpected = 0 # expected identation level
+
+# checks whether the current token is of chosen type without consuming it
+# Type : 	type of token accepted
 def peekType(Type):
 	global token
 	return type(token) is Type
 
+# consumes the current token if it is of type and value is in accepted array
 # Type : 	type of token accepted
 # accepted: list of possible char accepted
 def consume(Type, accepted=None):
@@ -26,6 +31,8 @@ def consume(Type, accepted=None):
 			token = next()
 			return True
 	return False
+	
+# consumes the current token if it is of the exact type and value
 # Type : 	type of token accepted
 # accepted: exact string accepted
 def consumeExact(Type, accepted):
@@ -60,24 +67,24 @@ Variables = {}
 def declare(variables, type, name):
 	variables[name] = AST_Node(type, len(Variables))
 
-# expected identation level
-indentsExpected = 0
-
 # packs a jump offset into 2 bytes
-def jumpOffset(offset):
+def JumpOffset(offset):
 	return struct.pack('h', offset)
 
-# TODO: remove pop instructions and make JUMP_IF and JUMP_IF_FALSE automatically pop the stack (what of match statements though ?)
+# the bytes for a jump
+def Jump(offset):
+	return (OP_JUMP, *JumpOffset(offset))
 
-#def JumpIf(condition, offset):
-#	jumpOp = OP_JUMP_IF
-#	
-#	# transform 'jump_if not condition' into jump_if_not condition'
-#	if condition[-1] == OP_NEG:
-#		jumpOp = OP_JUMP_IF_FALSE
-#		condition = condition[:-1]
-#	
-#	return [ *condition, jumpOp, *jumpOffset(offset), OP_POP]
+# the bytes for a conditional jump
+def JumpIf(conditionOpcodes, offset, jumpIfTrue = True):
+	ignoreOpNeg = False
+	if conditionOpcodes[-1] == OP_NEG:
+		jumpIfTrue = not jumpIfTrue
+		ignoreOpNeg = True
+	return ( *(conditionOpcodes[:-1] if ignoreOpNeg else conditionOpcodes), OP_JUMP_IF if jumpIfTrue else OP_JUMP_IF_FALSE, *JumpOffset( offset ) )
+
+def JumpIfFalse(conditionOpcodes, offset):
+	return JumpIf(conditionOpcodes, offset, False)
 
 ####################################
 ## the recursive code generator
@@ -154,14 +161,12 @@ def WhileStatement():
 	indentsExpected += 1
 	inst = Block() # Block returns instructions, not AST_Node
 	if len(inst)==0:  Error('while missing instructions to loop over')
-	# TODO : for all boolean jumps, replace OP_NEG by OP_JUMP_IF
-	# maybe use a compiler function for this
 	
 	# in this set of instructions :
 	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
 	# 5 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
 	
-	inst = [*cond.opcodes, OP_JUMP_IF_FALSE, *jumpOffset( len(inst)+4 ), OP_POP, *inst, OP_JUMP, *jumpOffset( - (len(inst)+len(cond.opcodes)+5) ) ]
+	inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+5) ) ]
 	return inst
 
 def Expression():
@@ -189,7 +194,7 @@ def OrExpression():
 	
 	inst = firstCondition
 	for condition in otherConditions:
-		inst.opcodes.extend([ OP_JUMP_IF, *jumpOffset(total_offset), OP_POP, *condition.opcodes ])
+		inst.opcodes = [ *JumpIf(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
 		total_offset -= (len(condition.opcodes) + OVERHEAD)
 	
 	return inst
@@ -215,7 +220,7 @@ def AndExpression():
 	
 	inst = firstCondition
 	for condition in otherConditions:
-		inst.opcodes.extend([ OP_JUMP_IF_FALSE, *jumpOffset(total_offset), OP_POP, *condition.opcodes ])
+		inst.opcodes = [*JumpIfFalse(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
 		total_offset -= (len(condition.opcodes) + OVERHEAD)
 	
 	return inst
@@ -255,8 +260,10 @@ def Addition():
 	if consume(OP, '-'):
 		if consumed=='-' and ( type(token) is INT or type(token) is FLOAT ):
 			token.value *= -1
+		elif consumed=='-':
+			negate = True
 	elif consume(OP, '!'):
-		negate = True
+		negate = True # TODO: check following expression is boolean
 	
 	inst = Multiply()
 	while consume(OP,'+-'):
@@ -269,7 +276,9 @@ def Addition():
 				elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
 			else: Error('operand types do not match', op)
 		else: Error('missing right operand after', op)
-	if negate: inst.append(OP_NEG)
+		
+	if negate: inst.opcodes = [*inst.opcodes, OP_NEG]
+	
 	return inst
 
 
@@ -291,10 +300,14 @@ def Multiply():
 def Primary():
 	global token
 	inst = AST_Node(None, [])
-
+	
 	if consume(NAME):
 		name = consumed
-		if consumed in Variables:
+		if   name.upper() == "TRUE":
+			inst = AST_Node( bool, [ OP_TRUE ])
+		elif name.upper() == "FALSE":
+			inst = AST_Node( bool, [ OP_FALSE ])
+		elif name in Variables:
 			var = Variables[name]
 			inst = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field
 		else: Error('unknown name', name)
