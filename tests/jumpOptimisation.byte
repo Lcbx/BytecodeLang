@@ -1,0 +1,10 @@
+
+def test = -1 == 0-1
+
+while test
+	test = false
+
+while !test
+	test = true
+
+'END'

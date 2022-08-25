@@ -1,0 +1,37 @@
+tokenize_Out:
+NAME: def, NAME: test, OP: =, OP: -, INT: 1, OP: ==, INT: 0, OP: -, INT: 1, NAME: while, NAME: test, TABS: 1, NAME: test, OP: =, NAME: false, NAME: while, OP: !, NAME: test, TABS: 1, NAME: test, OP: =, NAME: true, STRING: END, EOF: line 9
+__SECTION__
+tokenize_Err:
+
+__SECTION__
+compile_Out:
+0 errors
+37 instructions [4, 255, 4, 0, 4, 1, 22, 15, 9, 0, 14, 7, 0, 11, 3, 10, 0, 12, 246, 255, 9, 0, 13, 7, 0, 11, 2, 10, 0, 12, 245, 255, 8, 69, 78, 68, 0]
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+0    	OP_INT1 => -1 --
+2    	OP_INT1 => 0 --
+4    	OP_INT1 => 1 --
+6    	OP_SUB => -1 --
+7    	OP_EQ => True --
+8    	OP_LOAD => var0 (True) --
+10   	OP_JUMP_IF_FALSE => !jump 7 --
+13   	OP_POP => True --
+14   	OP_FALSE =>  --
+15   	OP_STORE => var0 = False (was True) --
+17   	OP_JUMP => jumped -10 --
+10   	OP_JUMP_IF_FALSE => jump 7 --
+20   	OP_LOAD => var0 (False) --
+22   	OP_JUMP_IF => !jump 7 --
+25   	OP_POP => False --
+26   	OP_TRUE =>  --
+27   	OP_STORE => var0 = True (was False) --
+29   	OP_JUMP => jumped -11 --
+21   	NO_OP =>  --
+22   	OP_JUMP_IF => jump 7 --
+32   	OP_STRING => END --
+__SECTION__
+simulation_Err:
