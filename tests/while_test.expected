@@ -1,12 +1,12 @@
 tokenize_Out:
-NAME: def, NAME: a, OP: =, INT: 5, NAME: while, NAME: a, OP: >, INT: 1, TABS: 1, NAME: a, OP: =, NAME: a, OP: -, INT: 1, NAME: a, OP: =, NAME: a, OP: *, INT: 15, EOF: line 3
+NAME: def, NAME: a, OP: =, INT: 5, NAME: while, NAME: a, OP: >, INT: 1, TABS: 1, NAME: a, OP: =, NAME: a, OP: -, INT: 1, NAME: print, NAME: a, EOF: line 3
 __SECTION__
 tokenize_Err:
 
 __SECTION__
 compile_Out:
 0 errors
-28 instructions [4, 5, 9, 0, 4, 1, 19, 14, 11, 0, 11, 9, 0, 4, 1, 22, 10, 0, 12, 239, 255, 9, 0, 4, 15, 23, 10, 0]
+24 instructions [4, 5, 9, 0, 4, 1, 19, 14, 11, 0, 11, 9, 0, 4, 1, 22, 10, 0, 12, 239, 255, 9, 0, 26]
 __SECTION__
 compile_Err:
 
@@ -54,8 +54,6 @@ simulation_Out:
 6    	OP_GT => False --
 7    	OP_JUMP_IF_FALSE => jump 11 --
 21   	OP_LOAD => var0 (1) --
-23   	OP_INT1 => 15 --
-25   	OP_MUL => 15 --
-26   	OP_STORE => var0 = 15 (was 1) --
+23   	OP_PRINT => print 1 --
 __SECTION__
 simulation_Err:

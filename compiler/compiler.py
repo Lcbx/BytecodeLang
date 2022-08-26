@@ -123,8 +123,10 @@ def Block():
 		inst.extend(res)
 
 def Statement():
-	inst =  Declaration() 	 if consumeExact(NAME, 'def')   else \
+	inst =  Declaration()	 if consumeExact(NAME, 'def')   else \
+			IfStatement()	 if consumeExact(NAME, 'if')    else \
 			WhileStatement() if consumeExact(NAME, 'while') else \
+			PrintStatement() if consumeExact(NAME, 'print') else \
 			Assignment()	 if peekType(NAME)				else \
 			Expression().opcodes # temporary
 	
@@ -140,18 +142,20 @@ def Declaration():
 			return inst.opcodes
 		elif consume(AUX, '('): Error('functions not implemented yet')
 	else: Error('no name after def')
+
+def IfStatement():
+	global indentsExpected
+	cond = Expression()
+	if len(cond.opcodes)==0:  Error('if missing condition to evaluate')
+	if cond.type != bool:  Error('if condition is not boolean', cond.type)
+	indentsExpected += 1
+	inst = Block() # Block returns instructions, not AST_Node
+	if len(inst)==0:  Error('if missing instructions to jump over')
 	
-def Assignment():
-	if consume(NAME):
-		name = consumed
-		if name not in Variables: Error('unknown variable', name)
-		elif consume(OP, '='):
-			inst = [ *Expression().opcodes, OP_STORE, Variables[name].opcodes ] # TODO: fix: index of var is stored in opcode field
-			return inst
-		elif consume(AUX, '('): Error('functions not implemented yet')
-	# NOTE: we allow lone expressions but not variables
-	# 		this means that `-a` is allowed but `a` is not
-	else: Error(f'lone variable {name}')
+	# in this set of instructions :
+	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
+	inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst ]
+	return inst
 
 def WhileStatement():
 	global indentsExpected
@@ -165,12 +169,29 @@ def WhileStatement():
 	# in this set of instructions :
 	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
 	# 5 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
-	
 	inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+5) ) ]
 	return inst
 
+def PrintStatement():
+	inst = Expression()
+	if len(inst.opcodes)==0:  Error('print missing expression')
+	inst = [ *inst.opcodes, OP_PRINT ]
+	return inst
+
+def Assignment():
+	if consume(NAME):
+		name = consumed
+		if name not in Variables: Error('unknown variable', name)
+		elif consume(OP, '='):
+			inst = [ *Expression().opcodes, OP_STORE, Variables[name].opcodes ] # TODO: fix: index of var is stored in opcode field
+			return inst
+		elif consume(AUX, '('): Error('functions not implemented yet')
+	# NOTE: we allow lone expressions but not variables
+	# 		this means that `-a` is allowed but `a` is not
+	else: Error(f'lone variable {name}')
+
 def Expression():
-	# Note : over expresion, AST_Node is not used, we just take instructions directly
+	# Note : over expresion, AST_Node is not used, Statements have no type, just instructions
 	return OrExpression()
 
 def OrExpression():

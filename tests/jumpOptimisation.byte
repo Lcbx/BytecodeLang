@@ -7,4 +7,4 @@ while test
 while !test
 	test = true
 
-'END'
+print 'END'

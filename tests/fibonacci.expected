@@ -1,12 +1,12 @@
 tokenize_Out:
-NAME: def, NAME: n, OP: =, INT: 10, NAME: def, NAME: a, OP: =, INT: 0, NAME: def, NAME: b, OP: =, INT: 1, NAME: def, NAME: c, OP: =, INT: 0, NAME: while, NAME: n, OP: >, INT: 0, TABS: 1, NAME: c, OP: =, NAME: a, OP: +, NAME: b, TABS: 1, NAME: b, OP: =, NAME: a, TABS: 1, NAME: a, OP: =, NAME: c, TABS: 1, NAME: n, OP: =, NAME: n, OP: -, INT: 1, NAME: a, EOF: line 12
+NAME: def, NAME: n, OP: =, INT: 10, NAME: def, NAME: a, OP: =, INT: 0, NAME: def, NAME: b, OP: =, INT: 1, NAME: def, NAME: c, OP: =, INT: 0, NAME: while, NAME: n, OP: >, INT: 0, TABS: 1, NAME: c, OP: =, NAME: a, OP: +, NAME: b, TABS: 1, NAME: b, OP: =, NAME: a, TABS: 1, NAME: a, OP: =, NAME: c, TABS: 1, NAME: n, OP: =, NAME: n, OP: -, INT: 1, NAME: print, NAME: a, EOF: line 12
 __SECTION__
 tokenize_Err:
 
 __SECTION__
 compile_Out:
 0 errors
-42 instructions [4, 10, 4, 0, 4, 1, 4, 0, 9, 0, 4, 0, 19, 14, 26, 0, 11, 9, 1, 9, 2, 21, 10, 3, 9, 1, 10, 2, 9, 3, 10, 1, 9, 0, 4, 1, 22, 10, 0, 12, 224, 255]
+45 instructions [4, 10, 4, 0, 4, 1, 4, 0, 9, 0, 4, 0, 19, 14, 26, 0, 11, 9, 1, 9, 2, 21, 10, 3, 9, 1, 10, 2, 9, 3, 10, 1, 9, 0, 4, 1, 22, 10, 0, 12, 224, 255, 9, 1, 26]
 __SECTION__
 compile_Err:
 
@@ -190,5 +190,7 @@ simulation_Out:
 10   	OP_INT1 => 0 --
 12   	OP_GT => False --
 13   	OP_JUMP_IF_FALSE => jump 26 --
+42   	OP_LOAD => var1 (55) --
+44   	OP_PRINT => print 55 --
 __SECTION__
 simulation_Err:
