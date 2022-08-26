@@ -173,6 +173,7 @@ with open(args.input,'rb') as file:
 				stack.append(value)
 			elif opcode == OP_PRINT:
 				value = f'print {stack[-1]}'
+				stack.pop()
 			elif opcode == OP_SHOW_STACK: 
 				value = stack
 			elif opcode == OP_END: 
