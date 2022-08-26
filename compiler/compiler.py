@@ -143,25 +143,60 @@ def Declaration():
 		elif consume(AUX, '('): Error('functions not implemented yet')
 	else: Error('no name after def')
 
+def Condition(statementName):
+	cond = Expression()
+	if len(cond.opcodes)==0:  Error(f'{statementName} missing condition to evaluate')
+	if cond.type != bool:  Error(f'{statementName} condition is not boolean', cond.type)
+	return cond
+
 def IfStatement():
 	global indentsExpected
-	cond = Expression()
-	if len(cond.opcodes)==0:  Error('if missing condition to evaluate')
-	if cond.type != bool:  Error('if condition is not boolean', cond.type)
+	
+	conditions = []
+	
+	firstCond = Condition('if')
 	indentsExpected += 1
-	inst = Block() # Block returns instructions, not AST_Node
-	if len(inst)==0:  Error('if missing instructions to jump over')
+	firstInst = Block() # Block returns instructions, not AST_Node
+	if len(firstInst)==0:  Error('if missing instructions to jump over')
+	conditions.append( (firstCond.opcodes, firstInst) )
+	
+	while consumeExact(NAME, 'elif'):
+		otherCond = Condition('elif')
+		indentsExpected += 1
+		otherInst = Block() # Block returns instructions, not AST_Node
+		if len(otherInst)==0:  Error('elif missing instructions to jump over')
+		conditions.append( (otherCond.opcodes, otherInst) )
+	
+	
+	elseInst = []
+	if consumeExact(NAME, 'else'):
+		indentsExpected += 1
+		elseInst = Block() # Block returns instructions, not AST_Node
+		if len(elseInst)==0:  Error('else missing instructions')
 	
 	# in this set of instructions :
+	# 7 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP, short (= 2 bytes)
 	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
-	inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst ]
+	
+	total_offset = 0
+	for cond in conditions:
+		total_offset += (len(cond[0])+len(cond[1])+7)
+	total_offset += (len(elseInst) if elseInst else -3) # no need for last jump
+	
+	inst = []
+	for cond in conditions:
+		total_offset -= (len(cond[0])+len(cond[1])+7)
+		inst.extend( (*JumpIfFalse(cond[0], len(cond[1])+4), OP_POP, *cond[1] ) )
+		if total_offset > 0:
+			inst.extend( Jump(total_offset) )
+	
+	inst.extend( elseInst )
+	
 	return inst
 
 def WhileStatement():
 	global indentsExpected
-	cond = Expression()
-	if len(cond.opcodes)==0:  Error('while missing condition to evaluate')
-	if cond.type != bool:  Error('while condition is not boolean', cond.type)
+	cond = Condition('while')
 	indentsExpected += 1
 	inst = Block() # Block returns instructions, not AST_Node
 	if len(inst)==0:  Error('while missing instructions to loop over')
