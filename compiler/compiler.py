@@ -4,7 +4,7 @@ import struct
 
 
 ####################################
-## the machinery
+## utility functions / structures
 ####################################
 
 token = None 	# token to consume
@@ -56,7 +56,7 @@ def Error(*msg):
 
 # used for type analysis at compile time
 # for now it only handles string, int, float, bool
-# NOTE : compile time is significantly slowed by the need to allocate those nodes
+# NOTE : compile time is significantly slowed by the need to allocate these nodes
 @dataclass
 class AST_Node: # AST means Abstract Syntax Tree
 	type: 		object	# uses python types for now
@@ -105,26 +105,28 @@ def JumpIfFalse(conditionOpcodes, offset):
 	return JumpIf(conditionOpcodes, offset, False)
 
 ####################################
-## recusive descent code generator
+## code generator
 ####################################
 #
-# it's called a recusive descent parser
+# it uses a recusive descent parser :
 # we use the call stack as a way to create the parsing tree
 # it's simple, relatively intuitive, and performant enough
 # see https://www.geeksforgeeks.org/recursive-descent-parser/
 #
+# The Grammar used (might not be up to date) :
+#
 # Program
-#  |->Block = [Statement]1+
+#  |->Block = [<Statement>]1+
 #
 # Statement
-#	|-> Declaration    -> def <variable> = Expression
-#	|-> IfStatement    -> if <boolean Expression> Block [elif <boolean Expression> Block]* [else Block]?
-#	|-> WhileStatement -> while <boolean Expression> Block
+#	|-> Declaration    -> def <variable> = <Expression>
+#	|-> IfStatement    -> if <boolean Expression> <Block> [elif <boolean Expression> <Block>]* [else <Block>]?
+#	|-> WhileStatement -> while <boolean Expression> <Block>
 #	|-> PrintStatement -> print <Expression>
-#	|-> Assignment     -> <variable> = Expression
+#	|-> Assignment     -> <variable> = <Expression>
 #	|-> Expression (temporary)
 #
-# Expression     -> OrExpression
+# Expression     -> <OrExpression>
 # OrExpression   -> <AndExpression> [or <AndExpression>]*
 # AndExpression  -> <Equality>      [and <Equality>]*
 # Equality       -> <Comparison> [==|!=] <Comparison>
