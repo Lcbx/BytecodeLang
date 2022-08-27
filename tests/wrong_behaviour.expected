@@ -1,13 +1,14 @@
 tokenize_Out:
-INT: 45, OP: +, INT: 5, OP: *, INT: 8, OP: <, INT: 1000, NAME: or, INT: 34, STRING: hello, OP: +, INT: 23, EOF: line 1
+INT: 45, OP: +, INT: 5, OP: *, INT: 8, OP: <, INT: 1000, NAME: or, OP: !, INT: 34, STRING: hello, OP: +, INT: 23, EOF: line 1
 __SECTION__
 tokenize_Err:
 
 __SECTION__
 compile_Out:
-Error line 1, column 7 : or expression right operand is not boolean <class 'int'>
+Error line 1, column 7 : ! operation's rvalue is not boolean (<class 'int'>)
+Error line 1, column 7 : or right condition is not boolean (<class 'int'>)
 Error line 1, column 12 : operand types do not match +
-2 errors
+3 errors
 __SECTION__
 compile_Err:
 
