@@ -105,9 +105,35 @@ def JumpIfFalse(conditionOpcodes, offset):
 	return JumpIf(conditionOpcodes, offset, False)
 
 ####################################
-## the recursive code generator
+## recusive descent code generator
 ####################################
-next = None
+#
+# it's called a recusive descent parser
+# we use the call stack as a way to create the parsing tree
+# it's simple, relatively intuitive, and performant enough
+# see https://www.geeksforgeeks.org/recursive-descent-parser/
+#
+# Program
+#  |->Block = [Statement]1+
+#
+# Statement
+#	|-> Declaration    -> def <variable> = Expression
+#	|-> IfStatement    -> if <boolean Expression> Block [elif <boolean Expression> Block]* [else Block]?
+#	|-> WhileStatement -> while <boolean Expression> Block
+#	|-> PrintStatement -> print <Expression>
+#	|-> Assignment     -> <variable> = Expression
+#	|-> Expression (temporary)
+#
+# Expression     -> OrExpression
+# OrExpression   -> <AndExpression> [or <AndExpression>]*
+# AndExpression  -> <Equality>      [and <Equality>]*
+# Equality       -> <Comparison> [==|!=] <Comparison>
+# Comparison     -> <Addition> [<|>|<=|>=] <Addition>
+# Addition       -> <Multiplication> [[+|-] <Multiplication>]*
+# Multiplication -> <Primary> [[*|/] <Primary>]*
+# Primary        -> [true|false|<int>|<float>|<string>|<variable>|(<Expression>)]
+
+
 def Program(file):
 	global next
 	global token
@@ -342,14 +368,14 @@ def Addition():
 		negate = True
 		boolean= True
 	
-	inst = Multiply()
+	inst = Multiplication()
 	if boolean and inst.type != bool:
 		Error(f'! operation\'s rvalue is not boolean ({inst.type})', )
 	
 	while ConsumeAny(OP,'+-'):
 		op = consumed
 		if len(inst.opcodes)==0: Error('missing left operand before', op)
-		inst2 = Multiply()
+		inst2 = Multiplication()
 		if  len(inst2.opcodes)!=0:
 			if inst2.type == inst.type:
 				if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
@@ -362,7 +388,7 @@ def Addition():
 	return inst
 
 
-def Multiply():
+def Multiplication():
 	inst = Primary()
 	while ConsumeAny(OP, '*/'):
 		op = consumed
