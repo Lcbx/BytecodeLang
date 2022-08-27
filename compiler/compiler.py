@@ -138,17 +138,17 @@ def Block():
 		inst.extend(res)
 
 def Statement():
-	inst =  Declaration()	 if Consume(NAME, 'def')   else \
-			IfStatement()	 if Consume(NAME, 'if')    else \
-			WhileStatement() if Consume(NAME, 'while') else \
-			PrintStatement() if Consume(NAME, 'print') else \
+	inst =  Declaration()	 if Peek(NAME, 'def')   else \
+			IfStatement()	 if Peek(NAME, 'if')    else \
+			WhileStatement() if Peek(NAME, 'while') else \
+			PrintStatement() if Peek(NAME, 'print') else \
 			Assignment()	 if Peek(NAME)				else \
 			Expression().opcodes # temporary
 	
 	return inst
 
 def Declaration():
-	if Consume(NAME):
+	if Consume(NAME, 'def') and Consume(NAME):
 		name = consumed
 		if name in GetScope(): Error(name, 'already declared')
 		if Consume(OP, '='):
@@ -166,68 +166,73 @@ def Condition(statementName, expression, position = ''):
 
 def IfStatement():
 	global indentsExpected
-	
-	conditions = []
-	
-	firstCond = Condition('if', Expression())
-	indentsExpected += 1
-	
-	firstInst = Block() # Block returns instructions, not AST_Node
-	if len(firstInst)==0:  Error('if missing instructions to jump over')
-	conditions.append( (firstCond.opcodes, firstInst) )
-	
-	while Consume(NAME, 'elif'):
-		otherCond = Condition('elif', Expression())
-		indentsExpected += 1
-		otherInst = Block() # Block returns instructions, not AST_Node
-		if len(otherInst)==0:  Error('elif missing instructions to jump over')
-		conditions.append( (otherCond.opcodes, otherInst) )
-	
-	
-	elseInst = []
-	if Consume(NAME, 'else'):
-		indentsExpected += 1
-		elseInst = Block() # Block returns instructions, not AST_Node
-		if len(elseInst)==0:  Error('else missing instructions')
-	
-	# in this set of instructions :
-	# 7 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP, short (= 2 bytes)
-	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
-	
-	total_offset = 0
-	for cond in conditions:
-		total_offset += (len(cond[0])+len(cond[1])+7)
-	total_offset += (len(elseInst) if elseInst else -3) # no need for last jump
-	
 	inst = []
-	for cond in conditions:
-		total_offset -= (len(cond[0])+len(cond[1])+7)
-		inst.extend( (*JumpIfFalse(cond[0], len(cond[1])+4), OP_POP, *cond[1] ) )
-		if total_offset > 0:
-			inst.extend( Jump(total_offset) )
+	if Consume(NAME, 'if'):
 	
-	inst.extend( elseInst )
+		conditions = []
+		firstCond = Condition('if', Expression())
+		indentsExpected += 1
+		
+		firstInst = Block() # Block returns instructions, not AST_Node
+		if len(firstInst)==0:  Error('if missing instructions to jump over')
+		conditions.append( (firstCond.opcodes, firstInst) )
+		
+		while Consume(NAME, 'elif'):
+			otherCond = Condition('elif', Expression())
+			indentsExpected += 1
+			otherInst = Block() # Block returns instructions, not AST_Node
+			if len(otherInst)==0:  Error('elif missing instructions to jump over')
+			conditions.append( (otherCond.opcodes, otherInst) )
+		
+		
+		elseInst = []
+		if Consume(NAME, 'else'):
+			indentsExpected += 1
+			elseInst = Block() # Block returns instructions, not AST_Node
+			if len(elseInst)==0:  Error('else missing instructions')
+		
+		# in this set of instructions :
+		# 7 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP, short (= 2 bytes)
+		# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
+		
+		total_offset = 0
+		for cond in conditions:
+			total_offset += (len(cond[0])+len(cond[1])+7)
+		total_offset += (len(elseInst) if elseInst else -3) # no need for last jump
+		
+		for cond in conditions:
+			total_offset -= (len(cond[0])+len(cond[1])+7)
+			inst.extend( (*JumpIfFalse(cond[0], len(cond[1])+4), OP_POP, *cond[1] ) )
+			if total_offset > 0:
+				inst.extend( Jump(total_offset) )
+		
+		inst.extend( elseInst )
 	
 	return inst
 
 def WhileStatement():
 	global indentsExpected
-	cond = Condition('while', Expression())
-	indentsExpected += 1
+	inst = []
+	if Consume(NAME, 'while'):
 	
-	inst = Block() # Block returns instructions, not AST_Node
-	if len(inst)==0:  Error('while missing instructions to loop over')
-	
-	# in this set of instructions :
-	# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
-	# 5 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
-	inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+5) ) ]
+		cond = Condition('while', Expression())
+		indentsExpected += 1
+		
+		inst = Block() # Block returns instructions, not AST_Node
+		if len(inst)==0:  Error('while missing instructions to loop over')
+		
+		# in this set of instructions :
+		# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
+		# 5 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
+		inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+5) ) ]
 	return inst
 
 def PrintStatement():
-	inst = Expression()
-	if len(inst.opcodes)==0:  Error('print missing expression')
-	inst = [ *inst.opcodes, OP_PRINT ]
+	inst = []
+	if Consume(NAME, 'print'):
+		inst = Expression()
+		if len(inst.opcodes)==0:  Error('print missing expression')
+		inst = [ *inst.opcodes, OP_PRINT ]
 	return inst
 
 def Assignment():
@@ -243,7 +248,7 @@ def Assignment():
 		else: Error(f'lone variable {name}')
 
 def Expression():
-	# Note : over expresion, AST_Node is not used, Statements have no type, just instructions
+	# Note : over expression, AST_Node is not used, Statements have no type, just instructions
 	return OrExpression()
 
 def OrExpression():
