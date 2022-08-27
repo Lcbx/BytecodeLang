@@ -62,10 +62,28 @@ class AST_Node: # AST means Abstract Syntax Tree
 	type: 		object	# uses python types for now
 	opcodes:	list 	# the generated code
 
-Variables = {}
+ScopeCount = 0
+Scopes = [{}]
+def AddScope():
+	global Scopes
+	Scopes.append({})
+
+def PopScope():
+	global Scopes
+	global ScopeCount
+	ScopeCount -= len(Scopes[-1])
+	Scopes.pop()
+
+def GetScope():
+	global Scopes
+	return Scopes[-1]
+
 # the variables
-def declare(variables, type, name):
-	variables[name] = AST_Node(type, len(Variables))
+def Declare(type, name):
+	global ScopeCount
+	# TODO: fix: index of var is stored in opcode field
+	GetScope()[name] = AST_Node(type, ScopeCount) 
+	ScopeCount += 1
 
 # packs a jump offset into 2 bytes
 def JumpOffset(offset):
@@ -105,9 +123,6 @@ def Block():
 	global indentsExpected
 	inst = []
 	
-	#variables = {}
-	#methods = {}
-	
 	# while there's more instructions to parse within the same indentation level
 	while True:
 		if indentsExpected!=0 and not consumeExact(TABS, indentsExpected):
@@ -135,33 +150,33 @@ def Statement():
 def Declaration():
 	if consume(NAME):
 		name = consumed
-		if name in Variables: Error(name, 'already declared')
+		if name in GetScope(): Error(name, 'already declared')
 		if consume(OP, '='):
 			inst = Expression()
-			declare(Variables, inst.type, name)
+			Declare(inst.type, name)
 			return inst.opcodes
 		elif consume(AUX, '('): Error('functions not implemented yet')
 	else: Error('no name after def')
 
-def Condition(statementName):
-	cond = Expression()
-	if len(cond.opcodes)==0:  Error(f'{statementName} missing condition to evaluate')
-	if cond.type != bool:  Error(f'{statementName} condition is not boolean', cond.type)
-	return cond
+def Condition(statementName, expression, position = ''):
+	if position: position += ' '
+	if len(expression.opcodes)==0:	Error(f'{statementName} missing {position}condition to evaluate')
+	if expression.type != bool:		Error(f'{statementName} {position}condition is not boolean', expression.type)
+	return expression
 
 def IfStatement():
 	global indentsExpected
 	
 	conditions = []
 	
-	firstCond = Condition('if')
+	firstCond = Condition('if', Expression())
 	indentsExpected += 1
 	firstInst = Block() # Block returns instructions, not AST_Node
 	if len(firstInst)==0:  Error('if missing instructions to jump over')
 	conditions.append( (firstCond.opcodes, firstInst) )
 	
 	while consumeExact(NAME, 'elif'):
-		otherCond = Condition('elif')
+		otherCond = Condition('elif', Expression())
 		indentsExpected += 1
 		otherInst = Block() # Block returns instructions, not AST_Node
 		if len(otherInst)==0:  Error('elif missing instructions to jump over')
@@ -196,7 +211,7 @@ def IfStatement():
 
 def WhileStatement():
 	global indentsExpected
-	cond = Condition('while')
+	cond = Condition('while', Expression())
 	indentsExpected += 1
 	inst = Block() # Block returns instructions, not AST_Node
 	if len(inst)==0:  Error('while missing instructions to loop over')
@@ -216,66 +231,59 @@ def PrintStatement():
 def Assignment():
 	if consume(NAME):
 		name = consumed
-		if name not in Variables: Error('unknown variable', name)
+		if name not in GetScope(): Error('unknown variable', name)
 		elif consume(OP, '='):
-			inst = [ *Expression().opcodes, OP_STORE, Variables[name].opcodes ] # TODO: fix: index of var is stored in opcode field
+			inst = [ *Expression().opcodes, OP_STORE, GetScope()[name].opcodes ] # TODO: fix: index of var is stored in opcode field
 			return inst
 		elif consume(AUX, '('): Error('functions not implemented yet')
-	# NOTE: we allow lone expressions but not variables
-	# 		this means that `-a` is allowed but `a` is not
-	else: Error(f'lone variable {name}')
+		# NOTE: we allow lone expressions but not variables
+		# 		this means that `-a` is allowed but `a` is not
+		else: Error(f'lone variable {name}')
 
 def Expression():
 	# Note : over expresion, AST_Node is not used, Statements have no type, just instructions
 	return OrExpression()
 
 def OrExpression():
-	firstCondition = AndExpression()
-	lastCondition = firstCondition
-	otherConditions = []
+	firstCond = AndExpression()
+	lastCond = firstCond
+	otherConds = []
 	
-	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
+	OVERHEAD = 4 # 4 = OP_JUMP, short (= 2bytes), OP_POP
 	total_offset = 1 - OVERHEAD
 	while consumeExact(NAME, 'or'):
-		if len(lastCondition.opcodes)==0:  Error('or expression missing left operand')
-		if lastCondition.type != bool: Error('or expression left operand is not boolean', lastCondition.type)
+		Condition('or', firstCond, 'left')
 		
-		otherCondition = AndExpression()
-		if len(otherCondition.opcodes)==0: Error('or expression missing right operand')
-		if otherCondition.type != bool: Error('or expression right operand is not boolean', otherCondition.type)
-		otherConditions.append(otherCondition)
+		otherCond = Condition('or', AndExpression(), 'right')
+		otherConds.append(otherCond)
 		
-		total_offset+= (len(otherCondition.opcodes)+ OVERHEAD)
-		lastCondition = otherCondition
+		total_offset+= (len(otherCond.opcodes)+ OVERHEAD)
+		lastCond = otherCond
 	
-	inst = firstCondition
-	for condition in otherConditions:
+	inst = firstCond
+	for condition in otherConds:
 		inst.opcodes = [ *JumpIf(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
 		total_offset -= (len(condition.opcodes) + OVERHEAD)
 	
 	return inst
 
 def AndExpression():
-	firstCondition = Equality()
-	lastCondition = firstCondition
-	otherConditions = []
+	firstCond = Equality()
+	lastCond = firstCond
+	otherConds = []
 	
-	OVERHEAD = 4 # 4 = OP_JUMP, <jump distance (short = 2bytes)>, OP_POP
+	OVERHEAD = 4 # 4 = OP_JUMP, short (= 2bytes), OP_POP
 	total_offset = 1 - OVERHEAD
 	while consumeExact(NAME, 'and'):
-		if len(lastCondition.opcodes)==0:  Error('and expression missing left operand')
-		if lastCondition.type != bool: Error('and expression left operand is not boolean', lastCondition.type )
+		Condition('and', firstCond, 'left')
+		otherCond = Condition('and', Equality(), 'right')
+		otherConds.append(otherCond)
 		
-		otherCondition = Equality()
-		if len(otherCondition.opcodes)==0: Error('and expression missing right operand')
-		if otherCondition.type != bool: Error('and expression right operand is not boolean', otherCondition.type )
-		otherConditions.append(otherCondition)
-		
-		total_offset+= (len(otherCondition.opcodes)+ OVERHEAD)
-		lastCondition = otherCondition
+		total_offset+= (len(otherCond.opcodes)+ OVERHEAD)
+		lastCond = otherCond
 	
-	inst = firstCondition
-	for condition in otherConditions:
+	inst = firstCond
+	for condition in otherConds:
 		inst.opcodes = [*JumpIfFalse(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
 		total_offset -= (len(condition.opcodes) + OVERHEAD)
 	
@@ -363,8 +371,8 @@ def Primary():
 			inst = AST_Node( bool, [ OP_TRUE ])
 		elif name.upper() == "FALSE":
 			inst = AST_Node( bool, [ OP_FALSE ])
-		elif name in Variables:
-			var = Variables[name]
+		elif name in GetScope():
+			var = GetScope()[name]
 			inst = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field
 		else: Error('unknown name', name)
 

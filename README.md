@@ -22,7 +22,7 @@ while n > 0
 	n = n -1
 
 # the Nth number of the suite
-a
+print a
 ```
 see [fibonacci.byte](https://github.com/Lcbx/BytecodeLang/blob/master/tests/fibonacci.byte)
 
