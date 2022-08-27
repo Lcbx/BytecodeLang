@@ -1,12 +1,15 @@
 ## What's this ?
 BytecodeLang (name is temporary) is a language I've been working on and off since mid-2018.  
-It consists of a **[compiler in Python](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/compiler.py)** and a custom **[stack-based VM in c++](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.h)** (with no external libraries in either case);  
-a few tools (an [assembly-like compiler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/assembly_compiler.py), a [disassembler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/disassembler.py), a [vm simulator](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/vm_simulator.py), and a [test laucher](https://github.com/Lcbx/BytecodeLang/blob/master/LaunchTests.py)) are developped concurrently to help debugging.  
-Right now it is at the "calculator with some imperative instructions" stage.  
+It consists of a **[compiler in Python](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/compiler.py)** that and a custom **[stack-based bytecode interpreter/VM in c++](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.h)** (with no external libraries in either case).
+Popular examples of this approach are [C# and it's CLI/CLR](https://en.wikipedia.org/wiki/Common_Intermediate_Language) or [Java and it's Java Bytecode/JVM](https://en.wikipedia.org/wiki/Java_virtual_machine).
   
-This is *not* an attempt at creating a production-ready language.
-
-*Note :*  to ensure that the bytecodes match between the compiler and vm,  use a [script](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py) that generates a [c++ header file](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h) based on the compiler definitions. In fact now it also generates the [dispatch table](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp) for the interpreter. The interpreter is a bit of a second class citizen since the language is developped with a vm simulator, and changes are then back-propagated to c++.
+A few tools (an [assembly-like compiler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/assembly_compiler.py), a [disassembler](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/disassembler.py), a [vm simulator](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/vm_simulator.py), and a [test laucher](https://github.com/Lcbx/BytecodeLang/blob/master/LaunchTests.py)) are developped concurrently to help debugging.
+To ensure that the bytecodes match between the compiler and vm, a [script](https://github.com/Lcbx/BytecodeLang/blob/master/compiler/opcodes.py) generates a [c++ header file](https://github.com/Lcbx/BytecodeLang/blob/master/vm/opcodes.h) based on the compiler definitions.
+In fact now it also generates the [dispatch table](https://github.com/Lcbx/BytecodeLang/blob/master/vm/core.cpp) for the interpreter.
+The interpreter is a bit of a second class citizen since the language is developped with a vm simulator, and changes are then back-propagated to c++.
+  
+Right now it is at the "calculator with some imperative instructions" stage.  
+Please note that this is *not* an attempt at creating a production-ready language.
 
 ### Example (actual state of language)
 ```CoffeeScript
