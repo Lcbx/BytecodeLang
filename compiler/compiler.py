@@ -118,7 +118,7 @@ def _JumpIf(condOpcodes, offset, inverse):
 # jump opcode size constants
 IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
 WHILE_OVERHEAD = 5 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
-ELIF_OVERHEAD  = 7 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP, short (= 2 bytes)
+ELIF_OVERHEAD  = 3 # = ..., OP_JUMP, short (= 2 bytes)
 
 ####################################
 ## code generator
@@ -163,6 +163,8 @@ def Program(file):
 	
 	return prog
 
+# a series of statements within the scope
+# Note that Block returns instructions, not an AST_Node
 def Block():
 	global indentsExpected
 	inst = []
@@ -217,32 +219,36 @@ def IfStatement():
 		firstCond = Condition('if', Expression())
 		indentsExpected += 1
 		
-		firstInst = Block() # Block returns instructions, not AST_Node
+		firstInst = Block()
 		if len(firstInst)==0:  Error('if missing instructions to jump over')
-		conditions.append( (firstCond.opcodes, firstInst) )
+		
+		def _addCondition(condition, instructions):
+			conditions.append( (*JumpIfFalse(condition.opcodes, len(instructions)+IF_OVERHEAD), OP_POP, *instructions ) )
+		
+		_addCondition(firstCond, firstInst)
 		
 		while Consume(NAME, 'elif'):
 			otherCond = Condition('elif', Expression())
 			indentsExpected += 1
-			otherInst = Block() # Block returns instructions, not AST_Node
+			otherInst = Block()
 			if len(otherInst)==0:  Error('elif missing instructions to jump over')
-			conditions.append( (otherCond.opcodes, otherInst) )
+			_addCondition(otherCond, otherInst)
 		
 		
 		elseInst = []
 		if Consume(NAME, 'else'):
 			indentsExpected += 1
-			elseInst = Block() # Block returns instructions, not AST_Node
+			elseInst = Block()
 			if len(elseInst)==0:  Error('else missing instructions')
 		
 		total_offset = 0
 		for cond in conditions:
-			total_offset += (len(cond[0])+len(cond[1])+ELIF_OVERHEAD)
-		total_offset += (len(elseInst) if elseInst else IF_OVERHEAD-ELIF_OVERHEAD) # no need for last jump
+			total_offset += (len(cond)+ELIF_OVERHEAD)
+		total_offset += (len(elseInst) if elseInst else -ELIF_OVERHEAD) # no need for last jump
 		
 		for cond in conditions:
-			total_offset -= (len(cond[0])+len(cond[1])+ELIF_OVERHEAD)
-			inst.extend( (*JumpIfFalse(cond[0], len(cond[1])+IF_OVERHEAD), OP_POP, *cond[1] ) )
+			total_offset -= (len(cond)+ELIF_OVERHEAD)
+			inst.extend( cond )
 			if total_offset > 0:
 				inst.extend( Jump(total_offset) )
 		
@@ -258,7 +264,7 @@ def WhileStatement():
 		cond = Condition('while', Expression())
 		indentsExpected += 1
 		
-		inst = Block() # Block returns instructions, not AST_Node
+		inst = Block()
 		if len(inst)==0:  Error('while missing instructions to loop over')
 		
 		inst = [*JumpIfFalse(cond.opcodes, len(inst)+IF_OVERHEAD), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
@@ -288,6 +294,8 @@ def Expression():
 	# Note : over expression, AST_Node is not used, Statements have no type, just instructions
 	return OrExpression()
 
+#	TODOOOO!!! : ensure jump simplification does not mess with OrExpression/AndExpression
+
 def OrExpression():
 	firstCond = AndExpression()
 	inst = firstCond
@@ -298,14 +306,14 @@ def OrExpression():
 	
 		total_offset = 1 - IF_OVERHEAD
 		while Consume(NAME, 'or'):
-			otherCond = Condition('or', AndExpression(), 'right')
-			otherConds.append(otherCond)
+			otherCondOps = Condition('or', AndExpression(), 'right').opcodes
+			otherConds.append( (otherCondOps, simplifyJumpCond(otherCondOps)) )
 			
-			total_offset+= (len(otherCond.opcodes)+ IF_OVERHEAD)
+			total_offset+= (len(otherCondOps)+ IF_OVERHEAD)
 		
-		for condition in otherConds:
-			inst.opcodes = [ *JumpIf(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
-			total_offset -= (len(condition.opcodes) + IF_OVERHEAD)
+		for conditionOps, simplified in otherConds:
+			inst.opcodes = [ *_JumpIf(inst.opcodes, total_offset, simplified), OP_POP, *conditionOps ]
+			total_offset -= (len(conditionOps) + IF_OVERHEAD)
 	
 	return inst
 
@@ -319,14 +327,14 @@ def AndExpression():
 		
 		total_offset = 1 - IF_OVERHEAD
 		while Consume(NAME, 'and'):
-			otherCond = Condition('and', Equality(), 'right')
-			otherConds.append(otherCond)
+			otherCondOps = Condition('and', Equality(), 'right').opcodes
+			otherConds.append( (otherCondOps, simplifyJumpCond(otherCondOps)) )
 			
-			total_offset+= (len(otherCond.opcodes)+ IF_OVERHEAD)
+			total_offset+= (len(otherCondOps)+ IF_OVERHEAD)
 		
-		for condition in otherConds:
-			inst.opcodes = [*JumpIfFalse(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
-			total_offset -= (len(condition.opcodes) + IF_OVERHEAD)
+		for conditionOps, simplified in otherConds:
+			inst.opcodes = [*_JumpIf(inst.opcodes, total_offset, not simplified), OP_POP, *conditionOps ]
+			total_offset -= (len(conditionOps) + IF_OVERHEAD)
 	
 	return inst
 
