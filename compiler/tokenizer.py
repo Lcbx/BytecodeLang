@@ -194,11 +194,13 @@ if __name__ == '__main__':
 	results = []
 	with open(args.input,'r') as file:
 		tokenizer = Tokenizer(file)
-		tokens = []
 		token = None
 		while type(token) is not EOF:
 			token = tokenizer()
 			results.append(str(token))
+		
+	if len(results) == 0:
+		print('file is empty !')
 	
 	content = ', '.join(results)
 	vprint(content)

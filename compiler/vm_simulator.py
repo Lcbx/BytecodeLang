@@ -21,6 +21,9 @@ with open(args.input,'rb') as file:
 	content = file.read()
 	index=0
 	
+	if len(content) == 0:
+		print('file is empty !')
+		
 	while index<len(content):
 		opcode = content[index]
 		opName = opcodes[opcode].name

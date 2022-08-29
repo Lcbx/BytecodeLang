@@ -19,8 +19,13 @@ instructions = []
 
 with open(args.input,'r') as file:
 	content = file.read()
+	
+	if len(content) == 0:
+		print('file is empty !')
+		
 	words = content.split()
 	#print(words)
+	
 	i=0
 	while i<len(words):
 		word = words[i]

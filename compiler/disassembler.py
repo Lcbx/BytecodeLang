@@ -23,6 +23,10 @@ instructions = []
 with open(args.input,'rb') as file:
 	#print('NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.')
 	content = file.read()
+	
+	if len(content) == 0:
+		print('file is empty !')
+	
 	index=0
 	while index<len(content):
 		opcode = content[index]
