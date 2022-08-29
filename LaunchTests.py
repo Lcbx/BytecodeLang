@@ -101,10 +101,12 @@ def generateCodeTestResults(filePath):
 	# TODO? : use real vm on compiled bytecode and compare output with vm_simulator
 	return result
 
-
+def GetExpectedResultsFilePath(filePath):
+	basename = os.path.basename(filePath)
+	return filePath.replace(basename, '_'+basename).replace(compExt.DEFAULT_CODE_EXTENSION, compExt.DEFAULT_TEST_RESULT_EXTENSION)
 
 def parseExpectedResults(filePath):
-	expectedfile = filePath.replace(compExt.DEFAULT_CODE_EXTENSION, compExt.DEFAULT_TEST_RESULT_EXTENSION)
+	expectedfile = GetExpectedResultsFilePath(filePath)
 	
 	def readFile(filePath):
 		with open(filePath,'r') as file:
@@ -126,7 +128,7 @@ def writeFile(filePath, content):
 		file.write(	content )
 
 def writeExpectedResults(filePath, result):
-	expectedfile = filePath.replace(compExt.DEFAULT_CODE_EXTENSION, compExt.DEFAULT_TEST_RESULT_EXTENSION)
+	expectedfile = GetExpectedResultsFilePath(filePath)
 	res = f'{ENDLINE}{SECTION_SPLITTER}{ENDLINE}'.join([ f'{key}:{ENDLINE}{value}'for key, value in result.items()])
 	vprint(f'writing:{ENDLINE}{quote(res)}')
 	writeFile(expectedfile, res)
