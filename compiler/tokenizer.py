@@ -93,15 +93,13 @@ class Tokenizer:
 			advance()
 			return AUX(aux)
 
-		# operators (there can be with a = behind)
-		elif self.current in '=!><-+/*':
-			op = None
+		# operators (there can be some with a = behind)
+		if self.current in '=!><-+/*':
+			op = self.current
 			advance()
-			if self.current=='=':
-				op = self.last+self.current
+			if self.current == '=':
+				op += self.current
 				advance()
-			else:
-				op = self.last
 			return OP(op)
 		
 		# name

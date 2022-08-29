@@ -181,7 +181,7 @@ with open(args.filepath,'rb') as file:
 				stack.append(value)
 			elif opcode == OP_NEG:
 				value = stack[-1]
-				if cond is bool:
+				if isinstance(value, bool):
 					value = not value
 				else:
 					value = - value
