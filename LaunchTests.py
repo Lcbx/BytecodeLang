@@ -85,16 +85,16 @@ def generateCodeTestResults(filePath):
 	vprint( f'{BOLD}testing{ENDC} {UNDERLINE}{filePath}{ENDC}')
 	result = Document()
 	
-	tokenize = runCommandLine([PythonExePath, './compiler/tokenizer.py', '-vi', filePath], capture_output=True)
+	tokenize = runCommandLine([PythonExePath, './compiler/tokenizer.py', '-v', filePath], capture_output=True)
 	result.tokenize_Out = _prepString(tokenize.stdout)
 	result.tokenize_Err = _prepString(tokenize.stderr)
 	
-	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-vi', filePath], capture_output=True)
+	compile = runCommandLine([PythonExePath, './compiler/compiler.py', '-v', filePath], capture_output=True)
 	result.compile_Out = _prepString(compile.stdout)
 	result.compile_Err = _prepString(compile.stderr)
 	
 	simfilePath = filePath.replace(compExt.DEFAULT_CODE_EXTENSION, compExt.DEFAULT_COMPILED_EXTENSION)
-	simulation = runCommandLine([PythonExePath, './compiler/vm_simulator.py', '-i', simfilePath], capture_output=True)
+	simulation = runCommandLine([PythonExePath, './compiler/vm_simulator.py', '-b', "300", simfilePath], capture_output=True)
 	result.simulation_Out = _prepString(simulation.stdout)
 	result.simulation_Err = _prepString(simulation.stderr)
 	
@@ -145,7 +145,7 @@ if __name__ == '__main__':
 	
 	import argparse
 	commandLineArgs = argparse.ArgumentParser(description='code tests launcher for project scripting language')
-	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path of test folder or file', default = './tests')
+	commandLineArgs.add_argument('filepath', nargs = '?',  help='path of test folder or file', default = './tests')
 	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs')
 	commandLineArgs.add_argument('-k', '--keep',    action='store_true', default = False, help='if set will keep generated files')
 	commandLineArgs.add_argument('-u', '--update',  action='store_true', default = False, help='if set will update expected results')
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 	commandLineArgs.add_argument('-c', '--clean',   action='store_true', default = False, help='if set will only clean (and not launch tests)')
 	args = commandLineArgs.parse_args()
 	
-	TEST_PATH = args.input
+	TEST_PATH = args.filepath
 	VERBOSE = args.verbose
 	vprint = print if VERBOSE else lambda a,*b:None
 	

@@ -7,24 +7,36 @@ for n, op in enumerate(operations):
 
 import argparse
 commandLineArgs = argparse.ArgumentParser(description='homemade vm simulator for project scripting language')
-commandLineArgs.add_argument('-i', '--input', nargs = '?', default = '../tests/test.hex', help='path and name of file' )
+commandLineArgs.add_argument('filepath', nargs = '?', default = '../tests/test.hex', help='path and name of file' )
 commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs, and stop at each jump' )
+commandLineArgs.add_argument('-b', '--bound', type=int, default = "-1", help='limits the number of operations executed' )
 args = commandLineArgs.parse_args()
 
+import sys
 
-vprint = print if args.verbose else lambda a,*b:None
+def verbosePrint(a, *args):
+	print(a, args)
+	sys.stdout.flush()
 
-with open(args.input,'rb') as file:
+vprint = verbosePrint if args.verbose else lambda a,*b:None
+
+with open(args.filepath,'rb') as file:
 	#print('NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.')
 
 	stack = []
 	content = file.read()
 	index=0
+	OPsExecuted = -1
 	
 	if len(content) == 0:
 		print('file is empty !')
 		
 	while index<len(content):
+		OPsExecuted +=1
+		
+		if args.bound > 0 and OPsExecuted > args.bound:
+			sys.exit()
+		
 		opcode = content[index]
 		opName = opcodes[opcode].name
 		bytesConsumed = opcodes[opcode].bytesConsumed

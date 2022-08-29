@@ -1,4 +1,5 @@
 from opcodes import *
+from extensions import DEFAULT_COMPILED_EXTENSION, DEFAULT_ASSEMBLY_EXTENSION
 import struct
 
 
@@ -8,16 +9,16 @@ for n, item in enumerate(operations):
 
 import argparse
 commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-commandLineArgs.add_argument('-i', '--input', nargs = '?',  help='path and name of file', default = '../tests/test.ass' )
-commandLineArgs.add_argument('-o', '--output', nargs = '?', help='path and name of file (usual extension is .hex)')
+commandLineArgs.add_argument('filepath', nargs = '?',  help='path and name of file', default = f'../tests/test{DEFAULT_ASSEMBLY_EXTENSION}' )
+commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of file (usual extension is {DEFAULT_COMPILED_EXTENSION})')
 args = commandLineArgs.parse_args()
 if not args.output:
-	args.output = args.input.replace('.txt', '.hex')
+	args.output = args.filepath.replace(DEFAULT_ASSEMBLY_EXTENSION, DEFAULT_COMPILED_EXTENSION)
 
 
 instructions = []
 
-with open(args.input,'r') as file:
+with open(args.filepath,'r') as file:
 	content = file.read()
 	
 	if len(content) == 0:

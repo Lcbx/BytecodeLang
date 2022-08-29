@@ -8,19 +8,19 @@ for n, op in enumerate(operations):
 import argparse
 from extensions import DEFAULT_ASSEMBLY_EXTENSION, DEFAULT_COMPILED_EXTENSION
 commandLineArgs = argparse.ArgumentParser(description='homemade disassembler for project scripting language')
-commandLineArgs.add_argument('-i', '--input', nargs = '?', default = '../tests/test' + DEFAULT_COMPILED_EXTENSION, help='path and name of file' )
+commandLineArgs.add_argument('filepath', nargs = '?', default = '../tests/test' + DEFAULT_COMPILED_EXTENSION, help='path and name of file' )
 commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of file (usual extension is {DEFAULT_ASSEMBLY_EXTENSION})')
 commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs' )
 args = commandLineArgs.parse_args()
 
 if not args.output:
-	args.output = args.input.replace(DEFAULT_COMPILED_EXTENSION, DEFAULT_ASSEMBLY_EXTENSION)
+	args.output = args.filepath.replace(DEFAULT_COMPILED_EXTENSION, DEFAULT_ASSEMBLY_EXTENSION)
 
 # trick for verbosity
 vprint = print if args.verbose else lambda a,*b:None
 
 instructions = []
-with open(args.input,'rb') as file:
+with open(args.filepath,'rb') as file:
 	#print('NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.')
 	content = file.read()
 	

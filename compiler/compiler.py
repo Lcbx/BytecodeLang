@@ -116,6 +116,7 @@ def _JumpIf(condOpcodes, offset, inverse):
 
 
 # jump opcode size constants
+# TODO ? : remove OP_OP and merge it with OP_JUMP_IF/OP_JUMP_IF_FALSE
 IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
 WHILE_OVERHEAD = 5 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
 ELIF_OVERHEAD  = 3 # = ..., OP_JUMP, short (= 2 bytes)
@@ -294,7 +295,8 @@ def Expression():
 	# Note : over expression, AST_Node is not used, Statements have no type, just instructions
 	return OrExpression()
 
-#	TODOOOO!!! : ensure jump simplification does not mess with OrExpression/AndExpression
+# TODO!!! : ensure jump simplification does not mess with OrExpression/AndExpression
+# see jump_optimisation_test_BUG.byte
 
 def OrExpression():
 	firstCond = AndExpression()
@@ -463,19 +465,19 @@ if __name__ == '__main__':
 	import argparse
 	from extensions import DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION
 	commandLineArgs = argparse.ArgumentParser(description='homemade compiler for project scripting language')
-	commandLineArgs.add_argument('-i', '--input', nargs = '?',  help=f'path and name of code file', default = '../tests/test' + DEFAULT_CODE_EXTENSION )
+	commandLineArgs.add_argument('filepath', nargs = '?',  help=f'path and name of code file', default = '../tests/test' + DEFAULT_CODE_EXTENSION )
 	commandLineArgs.add_argument('-o', '--output', nargs = '?', help=f'path and name of compiled file (usual extension is {DEFAULT_COMPILED_EXTENSION})')
 	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs' )
 	args = commandLineArgs.parse_args()
 	
 	if not args.output:
-		args.output = args.input.replace(DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION)
+		args.output = args.filepath.replace(DEFAULT_CODE_EXTENSION, DEFAULT_COMPILED_EXTENSION)
 	
 	# trick for verbosity
 	vprint = print if args.verbose else lambda a,*b:None
 	
 	instructions = []
-	with open(args.input,'r') as file:
+	with open(args.filepath,'r') as file:
 		instructions = Program(file)
 		
 	print(errorCount, 'errors')
