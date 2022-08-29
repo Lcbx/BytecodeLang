@@ -85,6 +85,7 @@ def Declare(type, name):
 	GetScope()[name] = AST_Node(type, ScopeCount) 
 	ScopeCount += 1
 
+
 # packs a jump offset into 2 bytes
 def JumpOffset(offset):
 	return struct.pack('h', offset)
@@ -93,16 +94,26 @@ def JumpOffset(offset):
 def Jump(offset):
 	return (OP_JUMP, *JumpOffset(offset))
 
-# the bytes for a conditional jump
-def JumpIf(conditionOpcodes, offset, jumpIfTrue = True):
-	ignoreOpNeg = False
+# simplify the bytes for a conditional jump if the boolean is inversed
+# returns if confition was inversed
+def simplifyJumpCond(conditionOpcodes):
+	inversed = False
 	if conditionOpcodes[-1] == OP_NEG:
-		jumpIfTrue = not jumpIfTrue
-		ignoreOpNeg = True
-	return ( *(conditionOpcodes[:-1] if ignoreOpNeg else conditionOpcodes), OP_JUMP_IF if jumpIfTrue else OP_JUMP_IF_FALSE, *JumpOffset( offset ) )
+		conditionOpcodes.pop()
+		inversed =  True
+	return inversed
 
-def JumpIfFalse(conditionOpcodes, offset):
-	return JumpIf(conditionOpcodes, offset, False)
+def JumpIf(condOpcodes, offset):
+	onFalse = simplifyJumpCond(condOpcodes)
+	return _JumpIf(condOpcodes, offset, onFalse)
+	
+def JumpIfFalse(condOpcodes, offset):
+	onTrue = simplifyJumpCond(condOpcodes)
+	return _JumpIf(condOpcodes, offset, not onTrue)
+	
+def _JumpIf(condOpcodes, offset, inverse):
+	return  ( *condOpcodes, OP_JUMP_IF_FALSE if inverse else OP_JUMP_IF, *JumpOffset( offset ) )
+
 
 # jump opcode size constants
 IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
@@ -283,7 +294,6 @@ def OrExpression():
 	
 	if Peek(NAME, 'or'):
 		Condition('or', firstCond, 'left')
-		lastCond = firstCond
 		otherConds = []
 	
 		total_offset = 1 - IF_OVERHEAD
@@ -292,7 +302,6 @@ def OrExpression():
 			otherConds.append(otherCond)
 			
 			total_offset+= (len(otherCond.opcodes)+ IF_OVERHEAD)
-			lastCond = otherCond
 		
 		for condition in otherConds:
 			inst.opcodes = [ *JumpIf(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
@@ -306,7 +315,6 @@ def AndExpression():
 	
 	if Peek(NAME, 'and'):
 		Condition('and', firstCond, 'left')
-		lastCond = firstCond
 		otherConds = []
 		
 		total_offset = 1 - IF_OVERHEAD
@@ -315,7 +323,6 @@ def AndExpression():
 			otherConds.append(otherCond)
 			
 			total_offset+= (len(otherCond.opcodes)+ IF_OVERHEAD)
-			lastCond = otherCond
 		
 		for condition in otherConds:
 			inst.opcodes = [*JumpIfFalse(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]

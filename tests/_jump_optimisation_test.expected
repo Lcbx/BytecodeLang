@@ -6,7 +6,7 @@ tokenize_Err:
 __SECTION__
 compile_Out:
 0 errors
-38 instructions [4, 255, 4, 0, 4, 1, 22, 15, 9, 0, 14, 7, 0, 11, 3, 10, 0, 12, 246, 255, 9, 0, 13, 7, 0, 11, 2, 10, 0, 12, 245, 255, 8, 69, 78, 68, 0, 26]
+38 instructions [4, 255, 4, 0, 4, 1, 22, 15, 9, 0, 14, 7, 0, 11, 3, 10, 0, 12, 246, 255, 9, 0, 13, 7, 0, 11, 2, 10, 0, 12, 246, 255, 8, 69, 78, 68, 0, 26]
 __SECTION__
 compile_Err:
 
@@ -29,8 +29,7 @@ simulation_Out:
 25   	OP_POP => False --
 26   	OP_TRUE =>  --
 27   	OP_STORE => var0 = True (was False) --
-29   	OP_JUMP => jumped -11 --
-21   	NO_OP =>  --
+29   	OP_JUMP => jumped -10 --
 22   	OP_JUMP_IF => jump 7 --
 32   	OP_STRING => END --
 37   	OP_PRINT => print END --
