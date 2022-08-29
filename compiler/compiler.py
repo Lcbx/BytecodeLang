@@ -104,6 +104,11 @@ def JumpIf(conditionOpcodes, offset, jumpIfTrue = True):
 def JumpIfFalse(conditionOpcodes, offset):
 	return JumpIf(conditionOpcodes, offset, False)
 
+# jump opcode size constants
+IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
+WHILE_OVERHEAD = 5 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
+ELIF_OVERHEAD  = 7 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP, short (= 2 bytes)
+
 ####################################
 ## code generator
 ####################################
@@ -219,18 +224,14 @@ def IfStatement():
 			elseInst = Block() # Block returns instructions, not AST_Node
 			if len(elseInst)==0:  Error('else missing instructions')
 		
-		# in this set of instructions :
-		# 7 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP, short (= 2 bytes)
-		# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
-		
 		total_offset = 0
 		for cond in conditions:
-			total_offset += (len(cond[0])+len(cond[1])+7)
-		total_offset += (len(elseInst) if elseInst else -3) # no need for last jump
+			total_offset += (len(cond[0])+len(cond[1])+ELIF_OVERHEAD)
+		total_offset += (len(elseInst) if elseInst else IF_OVERHEAD-ELIF_OVERHEAD) # no need for last jump
 		
 		for cond in conditions:
-			total_offset -= (len(cond[0])+len(cond[1])+7)
-			inst.extend( (*JumpIfFalse(cond[0], len(cond[1])+4), OP_POP, *cond[1] ) )
+			total_offset -= (len(cond[0])+len(cond[1])+ELIF_OVERHEAD)
+			inst.extend( (*JumpIfFalse(cond[0], len(cond[1])+IF_OVERHEAD), OP_POP, *cond[1] ) )
 			if total_offset > 0:
 				inst.extend( Jump(total_offset) )
 		
@@ -249,10 +250,7 @@ def WhileStatement():
 		inst = Block() # Block returns instructions, not AST_Node
 		if len(inst)==0:  Error('while missing instructions to loop over')
 		
-		# in this set of instructions :
-		# 4 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
-		# 5 = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
-		inst = [*JumpIfFalse(cond.opcodes, len(inst)+4), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+5) ) ]
+		inst = [*JumpIfFalse(cond.opcodes, len(inst)+IF_OVERHEAD), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
 	return inst
 
 def PrintStatement():
@@ -288,18 +286,17 @@ def OrExpression():
 		lastCond = firstCond
 		otherConds = []
 	
-		OVERHEAD = 4 # 4 = OP_JUMP, short (= 2bytes), OP_POP
-		total_offset = 1 - OVERHEAD
+		total_offset = 1 - IF_OVERHEAD
 		while Consume(NAME, 'or'):
 			otherCond = Condition('or', AndExpression(), 'right')
 			otherConds.append(otherCond)
 			
-			total_offset+= (len(otherCond.opcodes)+ OVERHEAD)
+			total_offset+= (len(otherCond.opcodes)+ IF_OVERHEAD)
 			lastCond = otherCond
 		
 		for condition in otherConds:
 			inst.opcodes = [ *JumpIf(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
-			total_offset -= (len(condition.opcodes) + OVERHEAD)
+			total_offset -= (len(condition.opcodes) + IF_OVERHEAD)
 	
 	return inst
 
@@ -312,18 +309,17 @@ def AndExpression():
 		lastCond = firstCond
 		otherConds = []
 		
-		OVERHEAD = 4 # 4 = OP_JUMP, short (= 2bytes), OP_POP
-		total_offset = 1 - OVERHEAD
+		total_offset = 1 - IF_OVERHEAD
 		while Consume(NAME, 'and'):
 			otherCond = Condition('and', Equality(), 'right')
 			otherConds.append(otherCond)
 			
-			total_offset+= (len(otherCond.opcodes)+ OVERHEAD)
+			total_offset+= (len(otherCond.opcodes)+ IF_OVERHEAD)
 			lastCond = otherCond
 		
 		for condition in otherConds:
 			inst.opcodes = [*JumpIfFalse(inst.opcodes, total_offset), OP_POP, *condition.opcodes ]
-			total_offset -= (len(condition.opcodes) + OVERHEAD)
+			total_offset -= (len(condition.opcodes) + IF_OVERHEAD)
 	
 	return inst
 
