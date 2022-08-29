@@ -35,6 +35,7 @@ with open(args.filepath,'rb') as file:
 		OPsExecuted +=1
 		
 		if args.bound > 0 and OPsExecuted > args.bound:
+			print(f'... MAXIMUM OPERATION COUNT REACHED ({args.bound}) ...')
 			sys.exit()
 		
 		opcode = content[index]
