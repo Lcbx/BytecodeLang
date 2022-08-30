@@ -98,17 +98,19 @@ def Jump(offset):
 # returns if confition was inversed
 def simplifyJumpCond(conditionOpcodes):
 	inversed = False
-	if conditionOpcodes[-1] == OP_NEG:
+	while conditionOpcodes[-1] == OP_NEG:
 		conditionOpcodes.pop()
-		inversed =  True
+		inversed =  not inversed
 	return inversed
 
 def JumpIf(condOpcodes, offset):
-	onFalse = simplifyJumpCond(condOpcodes)
+	onFalse = False
+	#onFalse = simplifyJumpCond(condOpcodes)
 	return _JumpIf(condOpcodes, offset, onFalse)
 	
 def JumpIfFalse(condOpcodes, offset):
-	onTrue = simplifyJumpCond(condOpcodes)
+	onTrue = False
+	#onTrue = simplifyJumpCond(condOpcodes) 
 	return _JumpIf(condOpcodes, offset, not onTrue)
 	
 def _JumpIf(condOpcodes, offset, inverse):
@@ -120,6 +122,7 @@ def _JumpIf(condOpcodes, offset, inverse):
 IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
 WHILE_OVERHEAD = 5 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
 ELIF_OVERHEAD  = 3 # = ..., OP_JUMP, short (= 2 bytes)
+AND_OR_OVERHEAD= 1 # = ..., OP_POP, ...
 
 ####################################
 ## code generator
@@ -143,9 +146,11 @@ ELIF_OVERHEAD  = 3 # = ..., OP_JUMP, short (= 2 bytes)
 #	|-> Assignment     -> <variable> = <Expression>
 #	|-> Expression (temporary)
 #
+# -- NOTE : I'm using recursion to exploit that "A or B or C" <=> "A or (B or C)"
+#
 # Expression     -> <OrExpression>
-# OrExpression   -> <AndExpression> [or <AndExpression>]*
-# AndExpression  -> <Equality>      [and <Equality>]*
+# OrExpression   -> <AndExpression> [or  <OrExpression> ]?
+# AndExpression  -> <Equality>      [and <AndExpression>]?
 # Equality       -> <Comparison> [==|!=] <Comparison>
 # Comparison     -> <Addition> [<|>|<=|>=] <Addition>
 # Addition       -> <Multiplication> [[+|-] <Multiplication>]*
@@ -299,44 +304,24 @@ def Expression():
 # see jump_optimisation_test_BUG.byte
 
 def OrExpression():
-	firstCond = AndExpression()
-	inst = firstCond
+	inst = AndExpression()
 	
-	if Peek(NAME, 'or'):
-		Condition('or', firstCond, 'left')
-		otherConds = []
-	
-		total_offset = 1 - IF_OVERHEAD
-		while Consume(NAME, 'or'):
-			otherCondOps = Condition('or', AndExpression(), 'right').opcodes
-			otherConds.append( (otherCondOps, simplifyJumpCond(otherCondOps)) )
-			
-			total_offset+= (len(otherCondOps)+ IF_OVERHEAD)
+	if Consume(NAME, 'or'):
+		Condition('or', inst, 'left')
 		
-		for conditionOps, simplified in otherConds:
-			inst.opcodes = [ *_JumpIf(inst.opcodes, total_offset, simplified), OP_POP, *conditionOps ]
-			total_offset -= (len(conditionOps) + IF_OVERHEAD)
+		otherCondOPs = Condition('or', OrExpression(), 'right').opcodes
+		inst.opcodes = [ *JumpIf(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
 	
 	return inst
 
 def AndExpression():
-	firstCond = Equality()
-	inst = firstCond
+	inst = Equality()
 	
-	if Peek(NAME, 'and'):
-		Condition('and', firstCond, 'left')
-		otherConds = []
+	if Consume(NAME, 'and'):
+		Condition('and', inst, 'left')
 		
-		total_offset = 1 - IF_OVERHEAD
-		while Consume(NAME, 'and'):
-			otherCondOps = Condition('and', Equality(), 'right').opcodes
-			otherConds.append( (otherCondOps, simplifyJumpCond(otherCondOps)) )
-			
-			total_offset+= (len(otherCondOps)+ IF_OVERHEAD)
-		
-		for conditionOps, simplified in otherConds:
-			inst.opcodes = [*_JumpIf(inst.opcodes, total_offset, not simplified), OP_POP, *conditionOps ]
-			total_offset -= (len(conditionOps) + IF_OVERHEAD)
+		otherCondOPs = Condition('and', AndExpression(), 'right').opcodes
+		inst.opcodes = [ *JumpIfFalse(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
 	
 	return inst
 
@@ -371,21 +356,25 @@ def Comparison():
 
 def Addition():
 	# might lead by a - or ! to negate number or bool
-	negate  = False
-	boolean = False
+	numberNegate  = False
+	booleanNegate = False
 	
 	if Consume(OP, '-'):
-		if consumed=='-' and ( type(token) is INT or type(token) is FLOAT ):
+		if type(token) is INT or type(token) is FLOAT:
 			token.value *= -1
-		elif consumed=='-':
-			negate = True
+		else:
+			numberNegate = True
 	elif Consume(OP, '!'):
-		negate = True
-		boolean= True
+		booleanNegate = True
 	
 	inst = Multiplication()
-	if boolean and inst.type != bool:
-		Error(f'! operation\'s rvalue is not boolean ({inst.type})', )
+	if booleanNegate and inst.type != bool:
+		Error(f'! operation\'s rvalue is not boolean ({inst.type})')
+	elif numberNegate and not inst.type in (float, int):
+		Error(f'- operator\'s rvalue is not number ({inst.type})')
+	
+	if numberNegate or booleanNegate :
+		inst.opcodes = [*inst.opcodes, OP_NEG]
 	
 	while ConsumeAny(OP,'+-'):
 		op = consumed
@@ -397,8 +386,6 @@ def Addition():
 				elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
 			else: Error('operand types do not match', op)
 		else: Error('missing right operand after', op)
-		
-	if negate: inst.opcodes = [*inst.opcodes, OP_NEG]
 	
 	return inst
 
