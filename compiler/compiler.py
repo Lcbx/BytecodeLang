@@ -7,10 +7,12 @@ import struct
 ## utility functions / structures
 ####################################
 
-token = None 	# token to consume
+token = None 	# token waiting to be to consumed
 consumed = None # last token consumed
 
-indentsExpected = 0 # expected identation level
+# expected identation level
+# set to 0 when parsing starts (see Program() and Block() functions)
+indentsExpected = -1
 
 # checks whether the current token is of chosen type and value without consuming it
 # Type : type of token accepted
@@ -100,11 +102,14 @@ def JumpOffset(offset):
 def Jump(offset):
 	return (OP_JUMP, *JumpOffset(offset))
 
-# simplify the bytes for a conditional jump if the boolean is inversed
+# simplifies the bytes for a conditional jump if the boolean is inversed
 # returns if confition was inversed
 def simplifyJumpCond(conditionOpcodes):
 	inversed = False
 	while conditionOpcodes[-1] == OP_NEG:
+	# Question :
+	# Could we have a situation where a condition ends with the OP_NEG (=25) value ?
+	# if so this could cause a major bug.
 		conditionOpcodes.pop()
 		inversed = not inversed
 	return inversed
@@ -127,7 +132,7 @@ def JumpIfFalse(condOpcodes, offset):
 
 
 # jump opcode size constants
-# TODO ? : remove OP_OP and merge it with OP_JUMP_IF/OP_JUMP_IF_FALSE
+# TODO ? : remove OP_POP and merge it with OP_JUMP_IF/OP_JUMP_IF_FALSE
 IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
 WHILE_OVERHEAD = 5 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
 ELIF_OVERHEAD  = 3 # = ..., OP_JUMP, short (= 2 bytes)
@@ -155,7 +160,7 @@ AND_OR_OVERHEAD= 1 # = ..., OP_POP, ...
 #	|-> Assignment     -> <variable> = <Expression>
 #	|-> Expression (temporary)
 #
-# -- NOTE : I'm using recursion to exploit that "A or B or C" <=> "A or (B or C)"
+# -- NOTE : using recursion to exploit that "A or B or C" is equivalent to "A or (B or C)"
 #
 # Expression     -> <OrExpression>
 # OrExpression   -> <AndExpression> [or  <OrExpression> ]?
@@ -182,6 +187,7 @@ def Program(file):
 # Note that Block returns instructions, not an AST_Node
 def Block():
 	global indentsExpected
+	indentsExpected += 1
 	inst = []
 	
 	# while there's more instructions to parse within the same indentation level
@@ -226,13 +232,11 @@ def Condition(statementName, expression, position = ''):
 	return expression
 
 def IfStatement():
-	global indentsExpected
 	inst = []
 	if Consume(NAME, 'if'):
 	
 		conditions = []
 		firstCond = Condition('if', Expression())
-		indentsExpected += 1
 		
 		firstInst = Block()
 		if len(firstInst)==0:  Error('if missing instructions to jump over')
@@ -245,7 +249,6 @@ def IfStatement():
 		
 		while Consume(NAME, 'elif'):
 			otherCond = Condition('elif', Expression())
-			indentsExpected += 1
 			otherInst = Block()
 			if len(otherInst)==0:  Error('elif missing instructions to jump over')
 			_addCondition(otherCond, otherInst)
@@ -253,7 +256,6 @@ def IfStatement():
 		
 		elseInst = []
 		if Consume(NAME, 'else'):
-			indentsExpected += 1
 			elseInst = Block()
 			if len(elseInst)==0:  Error('else missing instructions')
 		
@@ -273,12 +275,10 @@ def IfStatement():
 	return inst
 
 def WhileStatement():
-	global indentsExpected
 	inst = []
 	if Consume(NAME, 'while'):
 	
 		cond = Condition('while', Expression())
-		indentsExpected += 1
 		jumpImplementation = simplerJumpOnFalse if cond.simple else JumpIfFalse
 		
 		inst = Block()
@@ -310,9 +310,6 @@ def Assignment():
 def Expression():
 	# Note : over expression, AST_Node is not used, Statements have no type, just instructions
 	return OrExpression()
-
-# TODO!!! : ensure jump simplification does not mess with OrExpression/AndExpression
-# see jump_optimisation_test_BUG.byte
 
 def OrExpression():
 	inst = AndExpression()
