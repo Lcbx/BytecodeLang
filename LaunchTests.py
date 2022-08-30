@@ -198,11 +198,15 @@ if __name__ == '__main__':
 					sectionsMissingFromExpected = [section for section in result.keys() if section not in expected]
 					if sectionsMissingFromExpected:
 						vprint(f'expected results missing section {sectionsMissingFromExpected}')
-				else:
-					shouldPrintResult = True
 			
 				if failed:
 					TestFails += 1
+			
+			if not expected and TestFails == 0:
+				# do some prioritising (compiler errors first, then simulation)
+				candidates = [ result.compile_Err, None if "0 errors" in result.compile_Out else result.compile_Out, result.simulation_Err, result.simulation_Out ]
+				result = next(filter(lambda x:x, candidates))
+				shouldPrintResult = True
 			
 			if shouldPrintResult:
 				print(f'{BOLD}Run results:{ENDLINE}{ENDC}{result}')
