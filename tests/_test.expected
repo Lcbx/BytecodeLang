@@ -1,0 +1,17 @@
+tokenize_Out:
+EOF: line 0
+__SECTION__
+tokenize_Err:
+
+__SECTION__
+compile_Out:
+0 errors
+0 instructions []
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+file is empty !
+__SECTION__
+simulation_Err:

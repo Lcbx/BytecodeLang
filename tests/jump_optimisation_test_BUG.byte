@@ -1,8 +1,0 @@
-
-def test = -1 == 0-1
-
-def i = 1
-while test and !(i==0)
-	i = i-1
-
-print 'END'

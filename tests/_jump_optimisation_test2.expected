@@ -1,0 +1,113 @@
+tokenize_Out:
+NAME: def, NAME: test, OP: =, OP: -, INT: 1, OP: ==, INT: 0, OP: -, INT: 1, NAME: def, NAME: i, OP: =, INT: 1, NAME: while, AUX: (, NAME: test, NAME: and, OP: !, AUX: (, NAME: i, OP: ==, INT: 1, AUX: ), NAME: and, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), AUX: ), TABS: 1, NAME: i, OP: =, NAME: i, OP: -, INT: 1, NAME: i, OP: =, INT: 1, NAME: while, AUX: (, NAME: test, NAME: and, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), AUX: ), TABS: 1, NAME: i, OP: =, NAME: i, OP: -, INT: 1, STRING: should reach here, NAME: if, OP: !, AUX: (, NAME: i, OP: ==, INT: 1, AUX: ), TABS: 1, NAME: i, OP: =, INT: 2, NAME: if, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), NAME: or, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), TABS: 1, NAME: i, OP: =, INT: 3, NAME: if, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), NAME: or, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), NAME: or, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), TABS: 1, NAME: i, OP: =, INT: 13, NAME: if, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), NAME: and, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), TABS: 1, NAME: i, OP: =, INT: 4, NAME: if, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), NAME: and, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), NAME: and, OP: !, AUX: (, NAME: i, OP: ==, INT: 0, AUX: ), TABS: 1, NAME: i, OP: =, INT: 12, NAME: print, NAME: i, NAME: print, STRING: END, EOF: line 30
+__SECTION__
+tokenize_Err:
+
+__SECTION__
+compile_Out:
+0 errors
+233 instructions [4, 255, 4, 0, 4, 1, 22, 15, 4, 1, 9, 0, 14, 17, 0, 11, 9, 1, 4, 1, 15, 25, 14, 7, 0, 11, 9, 1, 4, 0, 15, 25, 14, 11, 0, 11, 9, 1, 4, 1, 22, 10, 1, 12, 222, 255, 4, 1, 10, 1, 9, 0, 14, 7, 0, 11, 9, 1, 4, 0, 15, 25, 14, 11, 0, 11, 9, 1, 4, 1, 22, 10, 1, 12, 232, 255, 8, 115, 104, 111, 117, 108, 100, 32, 114, 101, 97, 99, 104, 32, 104, 101, 114, 101, 0, 9, 1, 4, 1, 15, 13, 8, 0, 11, 4, 2, 10, 1, 9, 1, 4, 0, 15, 25, 13, 7, 0, 11, 9, 1, 4, 0, 15, 25, 14, 8, 0, 11, 4, 3, 10, 1, 9, 1, 4, 0, 15, 25, 13, 17, 0, 11, 9, 1, 4, 0, 15, 25, 13, 7, 0, 11, 9, 1, 4, 0, 15, 25, 14, 8, 0, 11, 4, 13, 10, 1, 9, 1, 4, 0, 15, 25, 14, 7, 0, 11, 9, 1, 4, 0, 15, 25, 14, 8, 0, 11, 4, 4, 10, 1, 9, 1, 4, 0, 15, 25, 14, 17, 0, 11, 9, 1, 4, 0, 15, 25, 14, 7, 0, 11, 9, 1, 4, 0, 15, 25, 14, 8, 0, 11, 4, 12, 10, 1, 9, 1, 26, 8, 69, 78, 68, 0, 26]
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+0    	OP_INT1 => -1 --
+2    	OP_INT1 => 0 --
+4    	OP_INT1 => 1 --
+6    	OP_SUB => -1 --
+7    	OP_EQ => True --
+8    	OP_INT1 => 1 --
+10   	OP_LOAD => var0 (True) --
+12   	OP_JUMP_IF_FALSE => !jump 17 --
+15   	OP_POP => True --
+16   	OP_LOAD => var1 (1) --
+18   	OP_INT1 => 1 --
+20   	OP_EQ => True --
+21   	OP_NEG => False --
+22   	OP_JUMP_IF_FALSE => jump 7 --
+32   	OP_JUMP_IF_FALSE => jump 11 --
+46   	OP_INT1 => 1 --
+48   	OP_STORE => var1 = 1 (was 1) --
+50   	OP_LOAD => var0 (True) --
+52   	OP_JUMP_IF_FALSE => !jump 7 --
+55   	OP_POP => True --
+56   	OP_LOAD => var1 (1) --
+58   	OP_INT1 => 0 --
+60   	OP_EQ => False --
+61   	OP_NEG => True --
+62   	OP_JUMP_IF_FALSE => !jump 11 --
+65   	OP_POP => True --
+66   	OP_LOAD => var1 (1) --
+68   	OP_INT1 => 1 --
+70   	OP_SUB => 0 --
+71   	OP_STORE => var1 = 0 (was 1) --
+73   	OP_JUMP => jumped -24 --
+52   	OP_JUMP_IF_FALSE => jump 7 --
+62   	OP_JUMP_IF_FALSE => jump 11 --
+76   	OP_STRING => should reach here --
+95   	OP_LOAD => var1 (0) --
+97   	OP_INT1 => 1 --
+99   	OP_EQ => False --
+100  	OP_JUMP_IF => !jump 8 --
+103  	OP_POP => False --
+104  	OP_INT1 => 2 --
+106  	OP_STORE => var1 = 2 (was 0) --
+108  	OP_LOAD => var1 (2) --
+110  	OP_INT1 => 0 --
+112  	OP_EQ => False --
+113  	OP_NEG => True --
+114  	OP_JUMP_IF => jump 7 --
+124  	OP_JUMP_IF_FALSE => !jump 8 --
+127  	OP_POP => True --
+128  	OP_INT1 => 3 --
+130  	OP_STORE => var1 = 3 (was 2) --
+132  	OP_LOAD => var1 (3) --
+134  	OP_INT1 => 0 --
+136  	OP_EQ => False --
+137  	OP_NEG => True --
+138  	OP_JUMP_IF => jump 17 --
+158  	OP_JUMP_IF_FALSE => !jump 8 --
+161  	OP_POP => True --
+162  	OP_INT1 => 13 --
+164  	OP_STORE => var1 = 13 (was 3) --
+166  	OP_LOAD => var1 (13) --
+168  	OP_INT1 => 0 --
+170  	OP_EQ => False --
+171  	OP_NEG => True --
+172  	OP_JUMP_IF_FALSE => !jump 7 --
+175  	OP_POP => True --
+176  	OP_LOAD => var1 (13) --
+178  	OP_INT1 => 0 --
+180  	OP_EQ => False --
+181  	OP_NEG => True --
+182  	OP_JUMP_IF_FALSE => !jump 8 --
+185  	OP_POP => True --
+186  	OP_INT1 => 4 --
+188  	OP_STORE => var1 = 4 (was 13) --
+190  	OP_LOAD => var1 (4) --
+192  	OP_INT1 => 0 --
+194  	OP_EQ => False --
+195  	OP_NEG => True --
+196  	OP_JUMP_IF_FALSE => !jump 17 --
+199  	OP_POP => True --
+200  	OP_LOAD => var1 (4) --
+202  	OP_INT1 => 0 --
+204  	OP_EQ => False --
+205  	OP_NEG => True --
+206  	OP_JUMP_IF_FALSE => !jump 7 --
+209  	OP_POP => True --
+210  	OP_LOAD => var1 (4) --
+212  	OP_INT1 => 0 --
+214  	OP_EQ => False --
+215  	OP_NEG => True --
+216  	OP_JUMP_IF_FALSE => !jump 8 --
+219  	OP_POP => True --
+220  	OP_INT1 => 12 --
+222  	OP_STORE => var1 = 12 (was 4) --
+224  	OP_LOAD => var1 (12) --
+226  	OP_PRINT => print 12 --
+227  	OP_STRING => END --
+232  	OP_PRINT => print END --
+__SECTION__
+simulation_Err:
