@@ -167,6 +167,7 @@ if __name__ == '__main__':
 
 		for file in listFiles([compExt.DEFAULT_CODE_EXTENSION]):
 			result = generateCodeTestResults(file)
+			expected = None
 			TestsRan +=1
 			shouldPrintResult = False
 			shouldPrintSeparator = VERBOSE
@@ -202,11 +203,12 @@ if __name__ == '__main__':
 				if failed:
 					TestFails += 1
 			
-			if not expected and TestFails == 0:
-				# do some prioritising (compiler errors first, then simulation)
-				candidates = [ result.compile_Err, None if "0 errors" in result.compile_Out else result.compile_Out, result.simulation_Err, result.simulation_Out ]
-				result = next(filter(lambda x:x, candidates))
+			if not expected:
 				shouldPrintResult = True
+				if TestFails == 0 and not VERBOSE:
+					# do some prioritising (compiler errors first, then simulation)
+					candidates = [ result.compile_Err, None if "0 errors" in result.compile_Out else result.compile_Out, result.simulation_Err, result.simulation_Out ]
+					result = next(filter(lambda x:x, candidates))
 			
 			if shouldPrintResult:
 				print(f'{BOLD}Run results:{ENDLINE}{ENDC}{result}')
