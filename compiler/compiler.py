@@ -61,6 +61,12 @@ def Error(*msg):
 class AST_Node: # AST means Abstract Syntax Tree
 	type: 		object	# uses python types for now
 	opcodes:	list 	# the generated code
+	simple:		bool = True	# for boolean expressions, True by default, False when 'and' 'or' expressions are used
+	
+	# sets default value if not set
+	def __post_init__(self):
+		if self.simple is None:
+			self.simple = True
 
 ScopeCount = 0
 Scopes = [{}]
@@ -100,21 +106,24 @@ def simplifyJumpCond(conditionOpcodes):
 	inversed = False
 	while conditionOpcodes[-1] == OP_NEG:
 		conditionOpcodes.pop()
-		inversed =  not inversed
+		inversed = not inversed
 	return inversed
 
-def JumpIf(condOpcodes, offset):
-	onFalse = False
-	#onFalse = simplifyJumpCond(condOpcodes)
-	return _JumpIf(condOpcodes, offset, onFalse)
+def simplerJumpOnTrue(condOpcodes, offset):
+	#onFalse = False
+	onFalse = simplifyJumpCond(condOpcodes)
+	return JumpIfTrue(condOpcodes, offset, onFalse)
+	
+def simplerJumpOnFalse(condOpcodes, offset):
+	#onTrue = False
+	onTrue = simplifyJumpCond(condOpcodes) 
+	return JumpIfTrue(condOpcodes, offset, not onTrue)
+	
+def JumpIfTrue(condOpcodes, offset, inverse = False):
+	return  ( *condOpcodes, OP_JUMP_IF_FALSE if inverse else OP_JUMP_IF, *JumpOffset( offset ) )
 	
 def JumpIfFalse(condOpcodes, offset):
-	onTrue = False
-	#onTrue = simplifyJumpCond(condOpcodes) 
-	return _JumpIf(condOpcodes, offset, not onTrue)
-	
-def _JumpIf(condOpcodes, offset, inverse):
-	return  ( *condOpcodes, OP_JUMP_IF_FALSE if inverse else OP_JUMP_IF, *JumpOffset( offset ) )
+	return JumpIfTrue(condOpcodes, offset, True)
 
 
 # jump opcode size constants
@@ -229,7 +238,8 @@ def IfStatement():
 		if len(firstInst)==0:  Error('if missing instructions to jump over')
 		
 		def _addCondition(condition, instructions):
-			conditions.append( (*JumpIfFalse(condition.opcodes, len(instructions)+IF_OVERHEAD), OP_POP, *instructions ) )
+			jumpImplementation = simplerJumpOnFalse if condition.simple else JumpIfFalse
+			conditions.append( (*jumpImplementation(condition.opcodes, len(instructions)+IF_OVERHEAD), OP_POP, *instructions ) )
 		
 		_addCondition(firstCond, firstInst)
 		
@@ -269,11 +279,12 @@ def WhileStatement():
 	
 		cond = Condition('while', Expression())
 		indentsExpected += 1
+		jumpImplementation = simplerJumpOnFalse if cond.simple else JumpIfFalse
 		
 		inst = Block()
 		if len(inst)==0:  Error('while missing instructions to loop over')
 		
-		inst = [*JumpIfFalse(cond.opcodes, len(inst)+IF_OVERHEAD), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
+		inst = [*jumpImplementation(cond.opcodes, len(inst)+IF_OVERHEAD), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
 	return inst
 
 def PrintStatement():
@@ -310,7 +321,9 @@ def OrExpression():
 		Condition('or', inst, 'left')
 		
 		otherCondOPs = Condition('or', OrExpression(), 'right').opcodes
-		inst.opcodes = [ *JumpIf(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
+		inst.opcodes = [ *JumpIfTrue(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
+		
+		inst.simple = False
 	
 	return inst
 
@@ -322,6 +335,8 @@ def AndExpression():
 		
 		otherCondOPs = Condition('and', AndExpression(), 'right').opcodes
 		inst.opcodes = [ *JumpIfFalse(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
+		
+		inst.simple = False
 	
 	return inst
 
