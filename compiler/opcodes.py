@@ -24,6 +24,8 @@ operations = [
 	OP('OP_JUMP', 2),
 	OP('OP_JUMP_IF', 2),
 	OP('OP_JUMP_IF_FALSE', 2),
+	OP('OP_JUMP_IF_POP', 2),
+	OP('OP_JUMP_IF_FALSE_POP', 2),
 
 	OP('OP_EQ',  0),
 	OP('OP_NEQ', 0),

@@ -108,27 +108,39 @@ def simplifyJumpCond(conditionOpcodes):
 	inversed = False
 	while conditionOpcodes[-1] == OP_NEG:
 	# Question :
-	# Could we have a situation where a condition ends with the OP_NEG (=25) value ?
+	# Could we have a situation where a condition ends with the 25 (=OP_NEG) value (not the actual OP) ?
 	# if so this could cause a major bug.
 		conditionOpcodes.pop()
 		inversed = not inversed
 	return inversed
 
-def simplerJumpOnTrue(condOpcodes, offset):
-	#onFalse = False
-	onFalse = simplifyJumpCond(condOpcodes)
-	return JumpIfTrue(condOpcodes, offset, onFalse)
+
+def _JumpIf(condOpcodes, offset, onFalse = False, simplify = False, NoPOP = False):
 	
-def simplerJumpOnFalse(condOpcodes, offset):
-	#onTrue = False
-	onTrue = simplifyJumpCond(condOpcodes) 
-	return JumpIfTrue(condOpcodes, offset, not onTrue)
+	if simplify:
+		inversed = simplifyJumpCond(condOpcodes)
+		if inversed:
+			onFalse = not onFalse
 	
-def JumpIfTrue(condOpcodes, offset, inverse = False):
-	return  ( *condOpcodes, OP_JUMP_IF_FALSE if inverse else OP_JUMP_IF, *JumpOffset( offset ) )
+	jumpOP = (OP_JUMP_IF_FALSE     if onFalse else OP_JUMP_IF) if NoPOP else \
+			 (OP_JUMP_IF_FALSE_POP if onFalse else OP_JUMP_IF_POP)
 	
+	return  ( *condOpcodes, jumpOP, *JumpOffset( offset ) )
+	
+def JumpIfTrue(condOpcodes, offset):
+	return _JumpIf(condOpcodes, offset)
+
 def JumpIfFalse(condOpcodes, offset):
-	return JumpIfTrue(condOpcodes, offset, True)
+	return _JumpIf(condOpcodes, offset, onFalse=True)
+
+def SimplifiedJumpIfFalse(condOpcodes, offset):
+	return _JumpIf(condOpcodes, offset, onFalse=True, simplify=True)
+
+def JumpIfTrue_NoPOP(condOpcodes, offset):
+	return _JumpIf(condOpcodes, offset, NoPOP=True)
+	
+def JumpIfFalse_NoPOP(condOpcodes, offset):
+	return _JumpIf(condOpcodes, offset, onFalse=True, NoPOP=True)
 
 ####################################
 ## code generator
@@ -225,11 +237,10 @@ def Condition(statementName, expression, position = ''):
 
 # jump opcode size constants
 # parts between <> do not count toward constant
-# TODO ? : remove OP_POP and merge it with OP_JUMP_IF/OP_JUMP_IF_FALSE
-IF_OVERHEAD    = 4 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>, OP_POP
-WHILE_OVERHEAD = 5 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>, OP_POP, OP_JUMP
-ELIF_OVERHEAD  = 3 # = <if/elif statements>, OP_JUMP, short (= 2 bytes), <other elifs/else >
-AND_OR_OVERHEAD= 1 # = <previous condition (with jump)>, OP_POP, <next condition/end>
+IF_OVERHEAD    = 4 -1 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>
+WHILE_OVERHEAD = 5 -1 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>, OP_JUMP
+ELIF_OVERHEAD  = 3 -1 # = <if/elif statements>, OP_JUMP, short (= 2 bytes), <other elifs/else >
+AND_OR_OVERHEAD= 1 -1 # = <previous condition (with jump)>, <next condition/end>
 
 def IfStatement():
 	inst = []
@@ -242,8 +253,8 @@ def IfStatement():
 		if len(firstInst)==0:  Error('if missing instructions to jump over')
 		
 		def _addCondition(condition, instructions):
-			jumpImplementation = simplerJumpOnFalse if condition.simple else JumpIfFalse
-			conditions.append( (*jumpImplementation(condition.opcodes, len(instructions)+IF_OVERHEAD), OP_POP, *instructions ) )
+			jumpImplementation = SimplifiedJumpIfFalse if condition.simple else JumpIfFalse
+			conditions.append( (*jumpImplementation(condition.opcodes, len(instructions)+IF_OVERHEAD), *instructions ) )
 		
 		_addCondition(firstCond, firstInst)
 		
@@ -279,12 +290,12 @@ def WhileStatement():
 	if Consume(NAME, 'while'):
 	
 		cond = Condition('while', Expression())
-		jumpImplementation = simplerJumpOnFalse if cond.simple else JumpIfFalse
+		jumpImplementation = SimplifiedJumpIfFalse if cond.simple else JumpIfFalse
 		
 		inst = Block()
 		if len(inst)==0:  Error('while missing instructions to loop over')
 		
-		inst = [*jumpImplementation(cond.opcodes, len(inst)+IF_OVERHEAD), OP_POP, *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
+		inst = [*jumpImplementation(cond.opcodes, len(inst)+IF_OVERHEAD), *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
 	return inst
 
 def PrintStatement():
@@ -318,7 +329,7 @@ def OrExpression():
 		Condition('or', inst, 'left')
 		
 		otherCondOPs = Condition('or', OrExpression(), 'right').opcodes
-		inst.opcodes = [ *JumpIfTrue(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
+		inst.opcodes = [ *JumpIfTrue_NoPOP(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), *otherCondOPs ]
 		
 		inst.simple = False
 	
@@ -331,7 +342,7 @@ def AndExpression():
 		Condition('and', inst, 'left')
 		
 		otherCondOPs = Condition('and', AndExpression(), 'right').opcodes
-		inst.opcodes = [ *JumpIfFalse(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), OP_POP, *otherCondOPs ]
+		inst.opcodes = [ *JumpIfFalse_NoPOP(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), *otherCondOPs ]
 		
 		inst.simple = False
 	

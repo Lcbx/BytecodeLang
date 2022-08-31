@@ -21,7 +21,6 @@ def verbosePrint(a, *args):
 vprint = verbosePrint if args.verbose else lambda a,*b:None
 
 with open(args.filepath,'rb') as file:
-	#print('NOTE: OP_JUMP uses 3 bytes (OP and a short).\nSo a jump at indice 50 with an offset of 15 will get you to indice 68, NOT 65.')
 
 	stack = []
 	content = file.read()
@@ -126,6 +125,16 @@ with open(args.filepath,'rb') as file:
 				cond = stack[-1]
 				if not cond: apply_jump(value)
 				value = ('!' if cond else '') + 'jump ' + str(value)
+			elif opcode == OP_JUMP_IF_POP:
+				cond = stack[-1]
+				if cond: apply_jump(value)
+				value = ('' if cond else '!') + 'jump ' + str(value)
+				stack.pop()
+			elif opcode == OP_JUMP_IF_FALSE_POP:
+				cond = stack[-1]
+				if not cond: apply_jump(value)
+				value = ('!' if cond else '') + 'jump ' + str(value)
+				stack.pop()
 			elif opcode == OP_EQ: 
 				value = stack[-2] == stack[-1]
 				stack.pop()
@@ -194,6 +203,8 @@ with open(args.filepath,'rb') as file:
 				value = stack
 			elif opcode == OP_END: 
 				value = 'END'
+			else:
+				print(f'unknown opcode {opcode}:{opName}')
 		except Exception as e:
 			print(e)
 		finally:
