@@ -130,14 +130,6 @@ def JumpIfTrue(condOpcodes, offset, inverse = False):
 def JumpIfFalse(condOpcodes, offset):
 	return JumpIfTrue(condOpcodes, offset, True)
 
-
-# jump opcode size constants
-# TODO ? : remove OP_POP and merge it with OP_JUMP_IF/OP_JUMP_IF_FALSE
-IF_OVERHEAD    = 4 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP
-WHILE_OVERHEAD = 5 # = OP_JUMP_IF_FALSE, short (= 2 bytes), OP_POP, OP_JUMP
-ELIF_OVERHEAD  = 3 # = ..., OP_JUMP, short (= 2 bytes)
-AND_OR_OVERHEAD= 1 # = ..., OP_POP, ...
-
 ####################################
 ## code generator
 ####################################
@@ -230,6 +222,14 @@ def Condition(statementName, expression, position = ''):
 	if len(expression.opcodes)==0:	Error(f'{statementName} missing {position}condition to evaluate')
 	if expression.type != bool:		Error(f'{statementName} {position}condition is not boolean ({expression.type})')
 	return expression
+
+# jump opcode size constants
+# parts between <> do not count toward constant
+# TODO ? : remove OP_POP and merge it with OP_JUMP_IF/OP_JUMP_IF_FALSE
+IF_OVERHEAD    = 4 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>, OP_POP
+WHILE_OVERHEAD = 5 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>, OP_POP, OP_JUMP
+ELIF_OVERHEAD  = 3 # = <if/elif statements>, OP_JUMP, short (= 2 bytes), <other elifs/else >
+AND_OR_OVERHEAD= 1 # = <previous condition (with jump)>, OP_POP, <next condition/end>
 
 def IfStatement():
 	inst = []
