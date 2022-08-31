@@ -190,10 +190,10 @@ if __name__ == '__main__':
 								resultPresentation =  quote(result[section]) if result[section] else f'{WARNING}section was empty !{ENDC}'
 								print(f'{BOLD}result was {WARNING}unexpected{ENDC} : {UNDERLINE}{file}{ENDC} ({section}){ENDLINE}{resultPresentation}')
 								print(f'{BOLD}expected :{ENDC}{ENDLINE}{quote(expected[section])}')
-								if VERBOSE:
+								if VERBOSE or args.keep:
 									diff = HtmlDiff()
 									htmlText = diff.make_file(resultSplit, expectedSplit)
-									writeFile(file.replace(compExt.DEFAULT_CODE_EXTENSION, '_fail.html'), htmlText)
+									writeFile(file.replace(compExt.DEFAULT_CODE_EXTENSION, f'_{section}.html'), htmlText)
 						else: print(f'{BOLD}{WARNING}results missing section {section}{ENDC}')
 					
 					sectionsMissingFromExpected = [section for section in result.keys() if section not in expected]
