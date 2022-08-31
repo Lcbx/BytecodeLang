@@ -1,13 +1,13 @@
-def a = 5
+print 5
 
-if a > 1
+if 5 > 1
 	print '> 1'
 
-if a < 1
+if 5 < 1
 	print '< 1'
-elif a < 4
+elif 5 < 4 and false
 	print '< 4'
-elif a < 6
+elif 5 < 6 or false
 	print '< 6'
 else
 	print 'idk'
@@ -15,6 +15,11 @@ else
 if false
 	print 'oops'
 elif true
+	print 'yes'
+
+if 1!=1
+	print 'oops'
+else
 	print 'yes'
 
 print 'END'

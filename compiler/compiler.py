@@ -158,7 +158,8 @@ def JumpIfFalse_NoPOP(condOpcodes, offset):
 #
 # Statement
 #	|-> Declaration    -> def <variable> = <Expression>
-#	|-> IfStatement    -> if <boolean Expression> <Block> [elif <boolean Expression> <Block>]* [else <Block>]?
+#	|-> IfStatement    -> if <boolean Expression> <Block> [<ElIfStatement>]?
+#	|	 ElIfStatement -> [elif <boolean Expression> <Block> [<ElIfStatement>]? [else <Block>]?
 #	|-> WhileStatement -> while <boolean Expression> <Block>
 #	|-> PrintStatement -> print <Expression>
 #	|-> Assignment     -> <variable> = <Expression>
@@ -237,65 +238,74 @@ def Condition(statementName, expression, position = ''):
 
 # jump opcode size constants
 # parts between <> do not count toward constant
-IF_OVERHEAD    = 4 -1 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>
-WHILE_OVERHEAD = 5 -1 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>, OP_JUMP
-ELIF_OVERHEAD  = 3 -1 # = <if/elif statements>, OP_JUMP, short (= 2 bytes), <other elifs/else >
-AND_OR_OVERHEAD= 1 -1 # = <previous condition (with jump)>, <next condition/end>
+IF_OVERHEAD    = 3 # = <condition>, OP_JUMP_IF_FALSE, short (= 2 bytes), <content>
+WHILE_OVERHEAD = 1 # = <similar to if statement>, OP_JUMP
+ELIF_OVERHEAD  = 2 # = <if/elif statements>, OP_JUMP, short (= 2 bytes), <other elifs/else >
+AND_OR_OVERHEAD= 0 # = <previous condition (with jump)>, <next condition/end>
+
+def ConditionnalStatement(name):
+	condition = Condition(name, Expression())
+	
+	instructions = Block()
+	if len(instructions)==0:  Error(f'{name} missing instructions to jump over')
+	
+	jumpImplementation = SimplifiedJumpIfFalse if condition.simple else JumpIfFalse
+	return [*jumpImplementation(condition.opcodes, len(instructions)+IF_OVERHEAD), *instructions]
+
 
 def IfStatement():
 	inst = []
 	if Consume(NAME, 'if'):
-	
-		conditions = []
-		firstCond = Condition('if', Expression())
+		inst = ConditionnalStatement('if')
 		
-		firstInst = Block()
-		if len(firstInst)==0:  Error('if missing instructions to jump over')
+		instElif = ElIfStatement()
 		
-		def _addCondition(condition, instructions):
-			jumpImplementation = SimplifiedJumpIfFalse if condition.simple else JumpIfFalse
-			conditions.append( (*jumpImplementation(condition.opcodes, len(instructions)+IF_OVERHEAD), *instructions ) )
-		
-		_addCondition(firstCond, firstInst)
-		
-		while Consume(NAME, 'elif'):
-			otherCond = Condition('elif', Expression())
-			otherInst = Block()
-			if len(otherInst)==0:  Error('elif missing instructions to jump over')
-			_addCondition(otherCond, otherInst)
-		
-		
-		elseInst = []
-		if Consume(NAME, 'else'):
-			elseInst = Block()
-			if len(elseInst)==0:  Error('else missing instructions')
-		
-		total_offset = 0
-		for cond in conditions:
-			total_offset += (len(cond)+ELIF_OVERHEAD)
-		total_offset += (len(elseInst) if elseInst else -ELIF_OVERHEAD) # no need for last jump
-		
-		for cond in conditions:
-			total_offset -= (len(cond)+ELIF_OVERHEAD)
-			inst.extend( cond )
-			if total_offset > 0:
-				inst.extend( Jump(total_offset) )
-		
-		inst.extend( elseInst )
+		if instElif:
+			inst.extend( Jump(len(instElif)) )
+			inst.extend( instElif )
 	
 	return inst
+
+def ElIfStatement():
+	inst = []
+	instOtherElif = []
+	instElse = []
+	
+	if Consume(NAME, 'elif'):
+		
+		inst = ConditionnalStatement('elif')
+		
+		if Peek(NAME, 'elif'):
+			instOtherElif = ElIfStatement()
+			
+	if Consume(NAME, 'else'):
+		instElse = Block()
+		if len(instElse)==0:  Error('else missing instructions')
+		if Peek(NAME, 'elif'): Error('misplaced elif statement')
+		if Peek(NAME, 'else'): Error('misplaced else statement')
+	
+	total_offset  = 0
+	if instOtherElif:
+		total_offset += ( ELIF_OVERHEAD + len(instOtherElif) )
+	if instElse:
+		total_offset += ( len(instElse) )
+	
+	if instOtherElif:
+		inst.extend( Jump(total_offset) )
+		inst.extend( instOtherElif )
+		total_offset -= len(instOtherElif)
+	
+	if instElse:
+		inst.extend( instElse )
+	
+	return inst
+
 
 def WhileStatement():
 	inst = []
 	if Consume(NAME, 'while'):
-	
-		cond = Condition('while', Expression())
-		jumpImplementation = SimplifiedJumpIfFalse if cond.simple else JumpIfFalse
-		
-		inst = Block()
-		if len(inst)==0:  Error('while missing instructions to loop over')
-		
-		inst = [*jumpImplementation(cond.opcodes, len(inst)+IF_OVERHEAD), *inst, *Jump( - (len(inst)+len(cond.opcodes)+WHILE_OVERHEAD) ) ]
+		inst = ConditionnalStatement('while')
+		inst.extend( Jump( - (len(inst) + WHILE_OVERHEAD) ) )
 	return inst
 
 def PrintStatement():

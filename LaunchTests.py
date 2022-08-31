@@ -183,8 +183,8 @@ if __name__ == '__main__':
 				if expected:
 					for section, content in expected.items():
 						if section in result:
-							resultSplit = result[section].splitlines()
-							expectedSplit = expected[section].splitlines()
+							resultSplit =   result[section].replace(  ', ', f',{ENDLINE}').splitlines()
+							expectedSplit = expected[section].replace(', ', f',{ENDLINE}').splitlines()
 							if len(resultSplit) != len(expectedSplit) or any( res != exp for res,  exp in zip(resultSplit, expectedSplit)):
 								failed = True
 								resultPresentation =  quote(result[section]) if result[section] else f'{WARNING}section was empty !{ENDC}'
