@@ -15,8 +15,10 @@ This is where I put my pending tasks/ ideas. I could keep around what has been d
 - make compiling smarter and optimized
 
 #### language design
+- support basic data structures (at least arrays !)
 - support functions  
-	make functions be both objects and constructors :
+	make functions be both objects and constructors  
+	'declare' the object's fields when the function is called  
 ``` CoffeeScript
 def A() 
 	let b = (...)
@@ -26,14 +28,11 @@ let obj = A()
 obj.b # generates error
 obj.c # returns c 
 ```  
-	maybe make functions be inlined ?  
-	'declare' the object's fields when the function is called
-``` CoffeeScript
-def func()
-	var b
-let a = func() # implies declare('a.b') )
-```  
-- support basic data structures (at least arrays !)
+The **lisibility** is still good/better, it allows for **multiple return values**,
+you **don't have to refactor code into classes**. I think it would foster more **behaviour-oriented** coding.
+**BUT** it does not mesh well with **inheritance**, or at least makes it verbose - you have to redeclare properties and functions.
+(in the proposed code, let makes a variable go on the stack, var puts it in a heap object; the maximum number of fields can be known at compiled time).
+would duck-typing still work / be usefull ?
 - handle null like an empty list.  
 the goal is to make null the less cancerous as possible.  
 get rid of it, and tell people to use an empty list, which itself is going to be implemented as a sentinel value that can be converted to a list when list functions are called on it  
@@ -41,11 +40,6 @@ get rid of it, and tell people to use an empty list, which itself is going to be
 - (?) support generator expressions (enumerables & co) 
 - (?) support chained comparisons x<y<z
 
-The **lisibility** is still good/better, it allows for **multiple return values**,
-you **don't have to refactor code into classes**. I think it would foster more **behaviour-oriented** coding.
-**BUT** it does not mesh well with **inheritance**, or at least makes it verbose - you have to redeclare properties and functions.
-(in the proposed code, let makes a variable go on the stack, var puts it in a heap object; the maximum number of fields can be known at compiled time).
-would duck-typing still work / be usefull ?
 - what about using objects' members as parameters for functions automagically :
 ``` CoffeeScript
 def A() 
