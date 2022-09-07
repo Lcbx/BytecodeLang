@@ -103,7 +103,7 @@ def Jump(offset):
 	return (OP_JUMP, *JumpOffset(offset))
 
 # simplifies the bytes for a conditional jump if the boolean is inversed
-# returns if confition was inversed
+# returns if condition was inversed
 def simplifyJumpCond(conditionOpcodes):
 	inversed = False
 	while conditionOpcodes[-1] == OP_NEG:
@@ -256,47 +256,28 @@ def ConditionnalStatement(name):
 def IfStatement():
 	inst = []
 	if Consume(NAME, 'if'):
-		inst = ConditionnalStatement('if')
 		
-		instElif = ElIfStatement()
-		
-		if instElif:
-			inst.extend( Jump(len(instElif)) )
-			inst.extend( instElif )
-	
-	return inst
-
-def ElIfStatement():
-	inst = []
-	instOtherElif = []
-	instElse = []
-	
-	if Consume(NAME, 'elif'):
-		
-		inst = ConditionnalStatement('elif')
-		
-		if Peek(NAME, 'elif'):
-			instOtherElif = ElIfStatement()
+		conditions = [ConditionnalStatement('if')]
+		while Consume(NAME, 'elif'):
+			conditions.append( ConditionnalStatement('elif') )
 			
-	if Consume(NAME, 'else'):
-		instElse = Block()
-		if len(instElse)==0:  Error('else missing instructions')
-		if Peek(NAME, 'elif'): Error('misplaced elif statement')
-		if Peek(NAME, 'else'): Error('misplaced else statement')
-	
-	total_offset  = 0
-	if instOtherElif:
-		total_offset += ( ELIF_OVERHEAD + len(instOtherElif) )
-	if instElse:
-		total_offset += ( len(instElse) )
-	
-	if instOtherElif:
-		inst.extend( Jump(total_offset) )
-		inst.extend( instOtherElif )
-		total_offset -= len(instOtherElif)
-	
-	if instElse:
-		inst.extend( instElse )
+		instElse = []
+		if Consume(NAME, 'else'):
+			instElse = Block()
+			if len(instElse)==0:  Error('else missing instructions')
+			if Peek(NAME, 'elif'): Error('misplaced elif statement')
+			if Peek(NAME, 'else'): Error('misplaced else statement')
+		
+		total_offset  = sum(map(lambda x:len(x)+ELIF_OVERHEAD, conditions)) + len(instElse)
+		
+		for cond in conditions:
+			inst.extend( cond )
+			total_offset -= (len(cond) + ELIF_OVERHEAD)
+			if total_offset > 0:
+				inst.extend( Jump(total_offset) )
+		if instElse:
+			#inst.extend( Jump(total_offset) )
+			inst.extend( instElse )
 	
 	return inst
 

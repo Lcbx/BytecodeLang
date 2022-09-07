@@ -1,46 +1,55 @@
 tokenize_Out:
-NAME: def, NAME: a, OP: =, INT: 5, NAME: if, NAME: a, OP: >, INT: 1, TABS: 1, NAME: print, STRING: > 1, NAME: if, NAME: a, OP: <, INT: 1, TABS: 1, NAME: print, STRING: < 1, NAME: elif, NAME: a, OP: <, INT: 4, TABS: 1, NAME: print, STRING: < 4, NAME: elif, NAME: a, OP: <, INT: 6, TABS: 1, NAME: print, STRING: < 6, NAME: else, TABS: 1, NAME: print, STRING: idk, NAME: if, NAME: false, TABS: 1, NAME: print, STRING: oops, NAME: elif, NAME: true, TABS: 1, NAME: print, STRING: yes, NAME: print, STRING: END, EOF: line 19
+NAME: print, INT: 5, NAME: if, INT: 5, OP: >, INT: 1, TABS: 1, NAME: print, STRING: > 1, NAME: if, INT: 5, OP: <, INT: 1, TABS: 1, NAME: print, STRING: < 1, NAME: elif, INT: 5, OP: <, INT: 4, NAME: and, NAME: false, TABS: 1, NAME: print, STRING: < 4, NAME: elif, INT: 5, OP: <, INT: 6, NAME: or, NAME: false, TABS: 1, NAME: print, STRING: < 6, NAME: else, TABS: 1, NAME: print, STRING: idk, NAME: if, NAME: false, TABS: 1, NAME: print, STRING: oops, NAME: elif, NAME: true, TABS: 1, NAME: print, STRING: yes, NAME: if, INT: 1, OP: !=, INT: 1, TABS: 1, NAME: print, STRING: oops, NAME: else, TABS: 1, NAME: print, STRING: yes, NAME: print, STRING: END, EOF: line 24
 __SECTION__
 tokenize_Err:
 
 __SECTION__
 compile_Out:
 0 errors
-103 instructions [4, 5, 9, 0, 4, 1, 21, 16, 9, 0, 8, 62, 32, 49, 0, 28, 9, 0, 4, 1, 19, 16, 9, 0, 8, 60, 32, 49, 0, 28, 12, 40, 0, 9, 0, 4, 4, 19, 16, 9, 0, 8, 60, 32, 52, 0, 28, 12, 25, 0, 9, 0, 4, 6, 19, 16, 9, 0, 8, 60, 32, 54, 0, 28, 12, 6, 0, 8, 105, 100, 107, 0, 28, 3, 16, 10, 0, 8, 111, 111, 112, 115, 0, 28, 12, 10, 0, 2, 16, 9, 0, 8, 121, 101, 115, 0, 28, 8, 69, 78, 68, 0, 28]
+136 instructions [4, 5, 28, 4, 5, 4, 1, 21, 16, 9, 0, 8, 62, 32, 49, 0, 28, 4, 5, 4, 1, 19, 16, 9, 0, 8, 60, 32, 49, 0, 28, 12, 46, 0, 4, 5, 4, 4, 19, 14, 1, 0, 3, 16, 9, 0, 8, 60, 32, 52, 0, 28, 12, 26, 0, 4, 5, 4, 6, 19, 13, 1, 0, 3, 16, 9, 0, 8, 60, 32, 54, 0, 28, 12, 6, 0, 8, 105, 100, 107, 0, 28, 3, 16, 10, 0, 8, 111, 111, 112, 115, 0, 28, 12, 12, 0, 2, 16, 9, 0, 8, 121, 101, 115, 0, 28, 4, 1, 4, 1, 18, 16, 10, 0, 8, 111, 111, 112, 115, 0, 28, 12, 6, 0, 8, 121, 101, 115, 0, 28, 8, 69, 78, 68, 0, 28]
 __SECTION__
 compile_Err:
 
 __SECTION__
 simulation_Out:
 0    	OP_INT1 => 5 --
-2    	OP_LOAD => var0 (5) --
-4    	OP_INT1 => 1 --
-6    	OP_GT => True --
-7    	OP_JUMP_IF_FALSE_POP => !jump 9 --
-10   	OP_STRING => > 1 --
-15   	OP_PRINT => print > 1 --
-16   	OP_LOAD => var0 (5) --
-18   	OP_INT1 => 1 --
-20   	OP_LT => False --
-21   	OP_JUMP_IF_FALSE_POP => jump 9 --
-33   	OP_LOAD => var0 (5) --
-35   	OP_INT1 => 4 --
-37   	OP_LT => False --
-38   	OP_JUMP_IF_FALSE_POP => jump 9 --
-50   	OP_LOAD => var0 (5) --
-52   	OP_INT1 => 6 --
-54   	OP_LT => True --
-55   	OP_JUMP_IF_FALSE_POP => !jump 9 --
-58   	OP_STRING => < 6 --
-63   	OP_PRINT => print < 6 --
-64   	OP_JUMP => jumped 6 --
-73   	OP_FALSE =>  --
-74   	OP_JUMP_IF_FALSE_POP => jump 10 --
-87   	OP_TRUE =>  --
-88   	OP_JUMP_IF_FALSE_POP => !jump 9 --
-91   	OP_STRING => yes --
-96   	OP_PRINT => print yes --
-97   	OP_STRING => END --
-102  	OP_PRINT => print END --
+2    	OP_PRINT => print 5 --
+3    	OP_INT1 => 5 --
+5    	OP_INT1 => 1 --
+7    	OP_GT => True --
+8    	OP_JUMP_IF_FALSE_POP => !jump 9 --
+11   	OP_STRING => > 1 --
+16   	OP_PRINT => print > 1 --
+17   	OP_INT1 => 5 --
+19   	OP_INT1 => 1 --
+21   	OP_LT => False --
+22   	OP_JUMP_IF_FALSE_POP => jump 9 --
+34   	OP_INT1 => 5 --
+36   	OP_INT1 => 4 --
+38   	OP_LT => False --
+39   	OP_JUMP_IF_FALSE => jump 1 --
+43   	OP_JUMP_IF_FALSE_POP => jump 9 --
+55   	OP_INT1 => 5 --
+57   	OP_INT1 => 6 --
+59   	OP_LT => True --
+60   	OP_JUMP_IF => jump 1 --
+64   	OP_JUMP_IF_FALSE_POP => !jump 9 --
+67   	OP_STRING => < 6 --
+72   	OP_PRINT => print < 6 --
+73   	OP_JUMP => jumped 6 --
+82   	OP_FALSE =>  --
+83   	OP_JUMP_IF_FALSE_POP => jump 10 --
+96   	OP_TRUE =>  --
+97   	OP_JUMP_IF_FALSE_POP => !jump 9 --
+100  	OP_STRING => yes --
+105  	OP_PRINT => print yes --
+106  	OP_INT1 => 1 --
+108  	OP_INT1 => 1 --
+110  	OP_NEQ => False --
+111  	OP_JUMP_IF_FALSE_POP => jump 10 --
+124  	OP_STRING => yes --
+129  	OP_PRINT => print yes --
+130  	OP_STRING => END --
+135  	OP_PRINT => print END --
 __SECTION__
 simulation_Err:
