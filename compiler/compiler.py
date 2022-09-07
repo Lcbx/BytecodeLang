@@ -158,8 +158,7 @@ def JumpIfFalse_NoPOP(condOpcodes, offset):
 #
 # Statement
 #	|-> Declaration    -> def <variable> = <Expression>
-#	|-> IfStatement    -> if <boolean Expression> <Block> [<ElIfStatement>]?
-#	|	 ElIfStatement -> [elif <boolean Expression> <Block> [<ElIfStatement>]? [else <Block>]?
+#	|-> IfStatement    -> if <boolean Expression> <Block> [elif <boolean Expression> <Block>]* [else <Block>]?
 #	|-> WhileStatement -> while <boolean Expression> <Block>
 #	|-> PrintStatement -> print <Expression>
 #	|-> Assignment     -> <variable> = <Expression>
