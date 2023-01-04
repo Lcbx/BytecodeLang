@@ -55,23 +55,19 @@ with open(args.filepath,'rb') as file:
 				index+=1
 		elif bytesConsumed !=0 and bytesConsumed!=None :
 			fmt = None
-			if op == OP_FLOAT: # put this before bytesConsumed == 4, since int4 also does
-				value = readFloat()
-			else:
-				fmt = None
-				if bytesConsumed != 0:
-					if opcode == OP_FLOAT:
-						fmt = 'f'
-					elif bytesConsumed == 1:
-						fmt = 'b'
-					elif bytesConsumed == 2:
-						fmt='h'
-					elif bytesConsumed == 4:
-						fmt = 'i'
-					else:
-						print('unknown number of bytes consumed :', bytesConsumed, ' for op ', opName )
-					value = struct.unpack(fmt, content[index:index+bytesConsumed])[0]
-					index += bytesConsumed
+			if bytesConsumed != 0:
+				if opcode == OP_FLOAT:
+					fmt = 'f'
+				elif bytesConsumed == 1:
+					fmt = 'b'
+				elif bytesConsumed == 2:
+					fmt='h'
+				elif bytesConsumed == 4:
+					fmt = 'i'
+				else:
+					print('unknown number of bytes consumed :', bytesConsumed, ' for op ', opName )
+				value = struct.unpack(fmt, content[index:index+bytesConsumed])[0]
+				index += bytesConsumed
 		
 		
 		shouldWait = False
