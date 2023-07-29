@@ -420,10 +420,9 @@ def Equality():
 		op = consumed
 		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Comparison()
-		if len(inst2.opcodes)!=0:
-			if 	 op == '==': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_EQ])
-			elif op == '!=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_NEQ])
-		else: Error('missing right operand after', op)
+		if len(inst2.opcodes)==0: Error('missing right operand after', op)
+		elif op == '==': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_EQ])
+		elif op == '!=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_NEQ])
 	return inst
 
 def Comparison():
@@ -432,14 +431,13 @@ def Comparison():
 		op = consumed
 		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Addition()
-		if len(inst2.opcodes)!=0:
-			if inst.type in (float, int) and inst2.type == inst.type:
-				if 	 op == '>':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GT])
-				elif op == '>=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GTE])
-				elif op == '<':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LT])
-				elif op == '<=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LTE])
-			else: Error('operand types do not match', op)
-		else: Error('missing right operand after', op)
+		if len(inst2.opcodes)==0: Error('missing right operand after', op)
+		elif inst.type in (float, int) and inst2.type == inst.type:
+			if 	 op == '>':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GT])
+			elif op == '>=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GTE])
+			elif op == '<':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LT])
+			elif op == '<=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LTE])
+		else: Error('operand types do not match', op)
 	return inst
 
 
@@ -460,7 +458,7 @@ def Addition():
 	if booleanNegate and inst.type != bool:
 		Error(f'! operation\'s rvalue is not boolean ({inst.type})')
 	elif numberNegate and not inst.type in (float, int):
-		Error(f'- operator\'s rvalue is not number ({inst.type})')
+		Error(f'- operator\'s rvalue is not a number ({inst.type})')
 	
 	if numberNegate or booleanNegate :
 		inst.opcodes = [*inst.opcodes, OP_NEG]
@@ -469,12 +467,11 @@ def Addition():
 		op = consumed
 		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Multiplication()
-		if len(inst2.opcodes)!=0:
-			if inst2.type == inst.type:
-				if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
-				elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
-			else: Error('operand types do not match', op)
-		else: Error('missing right operand after', op)
+		if len(inst2.opcodes)==0: Error('missing right operand after', op)
+		elif inst2.type == inst.type:
+			if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
+			elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
+		else: Error('operand types do not match', op)
 	
 	return inst
 
@@ -485,12 +482,11 @@ def Multiplication():
 		op = consumed
 		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Primary()
-		if len(inst2.opcodes)!=0:
-			if inst.type in (float, int) and inst2.type == inst.type:
-				if 	 op == '*' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_MUL])
-				elif op == '/' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_DIV])
-			else: Error('operand types do not match', op)
-		else: Error('missing right operand after', op)
+		if len(inst2.opcodes)==0: Error('missing right operand after', op)
+		elif inst.type in (float, int) and inst2.type == inst.type:
+			if 	 op == '*' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_MUL])
+			elif op == '/' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_DIV])
+		else: Error('operand types do not match', op)
 	return inst
 
 
