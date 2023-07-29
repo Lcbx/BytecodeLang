@@ -6,7 +6,7 @@ tokenize_Err:
 __SECTION__
 compile_Out:
 0 errors
-23 instructions [4, 5, 9, 0, 4, 1, 21, 16, 10, 0, 9, 0, 4, 1, 24, 10, 0, 12, 240, 255, 9, 0, 28]
+23 instructions [4, 5, 9, 0, 4, 1, 21, 16, 10, 0, 9, 0, 4, 1, 24, 10, 0, 12, 240, 255, 9, 0, 30]
 __SECTION__
 compile_Err:
 

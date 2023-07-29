@@ -72,6 +72,11 @@ class AST_Node: # AST means Abstract Syntax Tree
 
 
 # used for declaring/resolving variables
+# TODO : to make function scope actually work,
+#		we need to make variable adress be relative to local scope
+#		since otherwise functions try to access the wrong global adress
+# this means that we need addScope/popscope instructions
+
 ScopeCount = 0
 Scopes = [{}]
 def AddScope():
@@ -101,7 +106,7 @@ functions = {}
 
 @dataclass
 class Function:
-	arguments:	list 	# argument names in order of declaration
+	parameters:	list 	# argument names in order of declaration
 	opcodes:	list 	# the generated code
 
 
@@ -209,16 +214,21 @@ def Block():
 	indentsExpected += 1
 	inst = []
 	
+	#print('Block start at ',token.context, token)
+	
 	# while there's more instructions to parse within the same indentation level
 	while True:
 		if indentsExpected!=0 and not Consume(TABS, indentsExpected):
 			# indents expected is set to whatever the next indentation is
 			indentsExpected = consumed if Consume(TABS) else 0
+			#print('Block end at ',token.context, token)
 			return inst
 		
 		res = Statement()
 		
+		# this is problematic but necessary
 		if not res:
+			#print('Block end at ',token.context, token)
 			return inst
 		
 		inst.extend(res)
@@ -229,7 +239,7 @@ def Statement():
 			IfStatement()	 if consumed == 'if'    else \
 			WhileStatement() if consumed == 'while' else \
 			PrintStatement() if consumed == 'print' else \
-			Assignment()	 if Peek(OP, '=')      else \
+			Assignment()	 if Peek(OP, '=')       else \
 			FunctionCall()	 if Peek(AUX, '(')      else \
 			Expression().opcodes # temporary
 	
@@ -253,19 +263,53 @@ def Declaration():
 	# function
 	elif Consume(AUX, '('):
 		AddScope()
+		locals = [] # ensure they are saved in declaration order
 		while Consume(NAME):
-			Declare(None, consumed)
+			argName = consumed
+			# TODO: find some way to ensure the call respects types
+			# without explicit type (used bc easier as-is)
+			Consume(NAME)
+			type = int    if consumed == 'i' else \
+				   float  if consumed == 'f' else \
+				   string if consumed == 's' else \
+				   bool   if consumed == 'b' else \
+				   None
+			Declare(type, argName) 
+			locals.append(argName)
 			if Consume(AUX, ')'): break;
 			if not Consume(AUX, ','): Error(name, 'function signature has unexpected tokens')
-		locals = GetScope().keys() # for now only scope accessible in function is itself
 		inst = Block()
-		functions[name] = Function(locals, inst)
 		PopScope()
+		# TODO : save internal variables (from GetScope)
+		# so we can access them if the function return is captured
+		functions[name] = Function(locals, inst)
+		print('functions', functions)
 		
-		print(functions) 
+		# getting around bug in block ('if not res')
+		return [ NO_OP ]
+	
+	Error('Declaration : unreachable', name)
 
 def FunctionCall():
-	pass
+	name = consumed
+	if not name in functions:
+		Error(name, 'function has not been defined')
+		return
+	
+	inst = []
+	
+	# parameters
+	Consume(AUX,'(')
+	func = functions[name]
+	for local in func.parameters:
+		inst.extend( Expression().opcodes )
+		Consume(AUX,',')
+	Consume(AUX,')')
+	
+	inst.extend( func.opcodes )
+	
+	# TODO : transfer scope locals to parent scope if function return is used
+	return inst
 
 def Condition(statementName, expression, position = ''):
 	if position: position += ' '
@@ -300,7 +344,7 @@ def IfStatement():
 	instElse = []
 	if Consume(NAME, 'else'):
 		instElse = Block()
-		if len(instElse)==0:  Error('else missing instructions')
+		if len(instElse)==0:   Error('else missing instructions')
 		if Peek(NAME, 'elif'): Error('misplaced elif statement')
 		if Peek(NAME, 'else'): Error('misplaced else statement')
 	
@@ -312,7 +356,6 @@ def IfStatement():
 		if total_offset > 0:
 			inst.extend( Jump(total_offset) )
 	if instElse:
-		#inst.extend( Jump(total_offset) )
 		inst.extend( instElse )
 	
 	return inst
@@ -338,6 +381,7 @@ def Assignment():
 	if Consume(OP, '='):
 		inst = [ *Expression().opcodes, OP_STORE, GetScope()[name].opcodes ] # TODO: fix: index of var is stored in opcode field
 		return inst
+	
 	Error('Assignment : unreachable', name)
 
 def Expression():
@@ -425,7 +469,7 @@ def Addition():
 		op = consumed
 		if len(inst.opcodes)==0: Error('missing left operand before', op)
 		inst2 = Multiplication()
-		if  len(inst2.opcodes)!=0:
+		if len(inst2.opcodes)!=0:
 			if inst2.type == inst.type:
 				if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
 				elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
@@ -460,6 +504,7 @@ def Primary():
 			inst = AST_Node( bool, [ OP_TRUE ])
 		elif name.upper() == "FALSE":
 			inst = AST_Node( bool, [ OP_FALSE ])
+		
 		elif name in GetScope():
 			var = GetScope()[name]
 			inst = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field

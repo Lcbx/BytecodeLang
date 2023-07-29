@@ -1,5 +1,7 @@
 
-def test(a,b)
-	def c = a + b
+def test(argA i, argB i)
+	def c = argA + argB
+	c = c + 1
 
 test(1,2)
+

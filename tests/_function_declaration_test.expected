@@ -1,0 +1,21 @@
+tokenize_Out:
+NAME: def, NAME: test, AUX: (, NAME: argA, NAME: i, AUX: ,, NAME: argB, NAME: i, AUX: ), TABS: 1, NAME: def, NAME: c, OP: =, NAME: argA, OP: +, NAME: argB, TABS: 1, NAME: c, OP: =, NAME: c, OP: +, INT: 1, INT: 1, OP: +, INT: 2, EOF: line 5
+__SECTION__
+tokenize_Err:
+
+__SECTION__
+compile_Out:
+functions {'test': Function(parameters=['argA', 'argB'], opcodes=[9, 0, 9, 1, 23, 9, 2, 4, 1, 23, 10, 2])}
+0 errors
+6 instructions [0, 4, 1, 4, 2, 23]
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+0    	NO_OP =>  --
+1    	OP_INT1 => 1 --
+3    	OP_INT1 => 2 --
+5    	OP_ADD => 3 --
+__SECTION__
+simulation_Err:

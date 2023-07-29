@@ -146,11 +146,11 @@ if __name__ == '__main__':
 	import argparse
 	commandLineArgs = argparse.ArgumentParser(description='code tests launcher for project scripting language')
 	commandLineArgs.add_argument('filepath', nargs = '?',  help='path of test folder or file', default = './tests')
-	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs')
-	commandLineArgs.add_argument('-k', '--keep',    action='store_true', default = False, help='if set will keep generated files')
-	commandLineArgs.add_argument('-u', '--update',  action='store_true', default = False, help='if set will update expected results')
-	commandLineArgs.add_argument('-t', '--tokenize',action='store_true', default = False, help='if set will only tokenize code (and not launch tests)')
-	commandLineArgs.add_argument('-c', '--clean',   action='store_true', default = False, help='if set will only clean (and not launch tests)')
+	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='print additional execution logs')
+	commandLineArgs.add_argument('-k', '--keep',    action='store_true', default = False, help='keep generated files')
+	commandLineArgs.add_argument('-u', '--update',  action='store_true', default = False, help='update expected results')
+	commandLineArgs.add_argument('-t', '--tokenize',action='store_true', default = False, help='only tokenize code (and not launch tests)')
+	commandLineArgs.add_argument('-c', '--clean',   action='store_true', default = False, help='only clean (and not launch tests)')
 	args = commandLineArgs.parse_args()
 	
 	TEST_PATH = args.filepath

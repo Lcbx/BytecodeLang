@@ -23,6 +23,10 @@ vprint = verbosePrint if args.verbose else lambda a,*b:None
 with open(args.filepath,'rb') as file:
 
 	stack = []
+	
+	scopes = []
+	currentScope = 0
+	
 	content = file.read()
 	index=0
 	OPsExecuted = -1
@@ -99,11 +103,11 @@ with open(args.filepath,'rb') as file:
 			elif opcode == OP_STRING:  
 				stack.append(value)
 			elif opcode == OP_LOAD:
-				var = stack[value]
+				var = stack[currentScope+value]
 				stack.append(var)
 				value = f'var{value} ({var})'
 			elif opcode == OP_STORE:
-				var = stack[value]
+				var = stack[currentScope+value]
 				newVar = stack[-1] 
 				stack[value] = newVar
 				value = f'var{value} = {newVar} (was {var})'
@@ -192,6 +196,12 @@ with open(args.filepath,'rb') as file:
 					value = - value
 				stack.pop()
 				stack.append(value)
+			elif opcode == OP_SCOPE_START:
+				currentScope = len(stack)
+				scopes.append( currentScope )
+			elif opcode == OP_SCOPE_END:
+				currentScope= scopes[-1]
+				scopes.pop()
 			elif opcode == OP_PRINT:
 				value = f'print {stack[-1]}'
 				stack.pop()

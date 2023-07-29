@@ -16,7 +16,7 @@ operations = [
 	OP('OP_INT4',  4), #MININT@MAXINT
 	OP('OP_FLOAT', 4),
 	OP('OP_STRING', None),
-
+	
 	OP('OP_LOAD',  1),
 	OP('OP_STORE', 1),
 	OP('OP_POP',   0),
@@ -39,6 +39,9 @@ operations = [
 	OP('OP_MUL', 0),
 	OP('OP_DIV', 0),
 	OP('OP_NEG', 0),
+
+	OP('OP_SCOPE_START', 0),
+	OP('OP_SCOPE_END', 0),
 
 	OP('OP_PRINT', 0),
 
