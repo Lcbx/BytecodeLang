@@ -224,17 +224,18 @@ def Block():
 		inst.extend(res)
 
 def Statement():
-	inst =  Declaration()	 if Peek(NAME, 'def')   else \
-			IfStatement()	 if Peek(NAME, 'if')    else \
-			WhileStatement() if Peek(NAME, 'while') else \
-			PrintStatement() if Peek(NAME, 'print') else \
-			Assignment()	 if Peek(NAME)				else \
+	Consume(NAME)
+	inst =  Declaration()	 if consumed == 'def'   else \
+			IfStatement()	 if consumed == 'if'    else \
+			WhileStatement() if consumed == 'while' else \
+			PrintStatement() if consumed == 'print' else \
+			Assignment()	 if Peek(OP, '=')      else \
+			FunctionCall()	 if Peek(AUX, '(')      else \
 			Expression().opcodes # temporary
 	
 	return inst
 
 def Declaration():
-	Consume(NAME, 'def') 
 	if not Consume(NAME):
 		Error('no name after def')
 		return
@@ -248,13 +249,14 @@ def Declaration():
 		inst = Expression()
 		Declare(inst.type, name)
 		return inst.opcodes
+	
 	# function
 	elif Consume(AUX, '('):
 		AddScope()
 		while Consume(NAME):
 			Declare(None, consumed)
 			if Consume(AUX, ')'): break;
-			if not Consume(AUX, ','): Error(f'{name} function signature has unexpected tokens')
+			if not Consume(AUX, ','): Error(name, 'function signature has unexpected tokens')
 		locals = GetScope().keys() # for now only scope accessible in function is itself
 		inst = Block()
 		functions[name] = Function(locals, inst)
@@ -290,60 +292,53 @@ def ConditionnalStatement(name):
 
 def IfStatement():
 	inst = []
-	if Consume(NAME, 'if'):
+	
+	conditions = [ConditionnalStatement('if')]
+	while Consume(NAME, 'elif'):
+		conditions.append( ConditionnalStatement('elif') )
 		
-		conditions = [ConditionnalStatement('if')]
-		while Consume(NAME, 'elif'):
-			conditions.append( ConditionnalStatement('elif') )
-			
-		instElse = []
-		if Consume(NAME, 'else'):
-			instElse = Block()
-			if len(instElse)==0:  Error('else missing instructions')
-			if Peek(NAME, 'elif'): Error('misplaced elif statement')
-			if Peek(NAME, 'else'): Error('misplaced else statement')
-		
-		total_offset  = sum(map(lambda x:len(x)+ELIF_OVERHEAD, conditions)) + len(instElse)
-		
-		for cond in conditions:
-			inst.extend( cond )
-			total_offset -= (len(cond) + ELIF_OVERHEAD)
-			if total_offset > 0:
-				inst.extend( Jump(total_offset) )
-		if instElse:
-			#inst.extend( Jump(total_offset) )
-			inst.extend( instElse )
+	instElse = []
+	if Consume(NAME, 'else'):
+		instElse = Block()
+		if len(instElse)==0:  Error('else missing instructions')
+		if Peek(NAME, 'elif'): Error('misplaced elif statement')
+		if Peek(NAME, 'else'): Error('misplaced else statement')
+	
+	total_offset  = sum(map(lambda x:len(x)+ELIF_OVERHEAD, conditions)) + len(instElse)
+	
+	for cond in conditions:
+		inst.extend( cond )
+		total_offset -= (len(cond) + ELIF_OVERHEAD)
+		if total_offset > 0:
+			inst.extend( Jump(total_offset) )
+	if instElse:
+		#inst.extend( Jump(total_offset) )
+		inst.extend( instElse )
 	
 	return inst
 
 
 def WhileStatement():
-	inst = []
-	if Consume(NAME, 'while'):
-		inst = ConditionnalStatement('while')
-		inst.extend( Jump( - (len(inst) + WHILE_OVERHEAD) ) )
+	inst = ConditionnalStatement('while')
+	inst.extend( Jump( - (len(inst) + WHILE_OVERHEAD) ) )
 	return inst
 
 def PrintStatement():
-	inst = []
-	if Consume(NAME, 'print'):
-		inst = Expression()
-		if len(inst.opcodes)==0:  Error('print missing expression')
-		inst = [ *inst.opcodes, OP_PRINT ]
+	inst = Expression()
+	if len(inst.opcodes)==0:  Error('print missing expression')
+	inst = [ *inst.opcodes, OP_PRINT ]
 	return inst
 
 def Assignment():
-	if Consume(NAME):
-		name = consumed
-		if name not in GetScope(): Error('unknown variable', name)
-		elif Consume(OP, '='):
-			inst = [ *Expression().opcodes, OP_STORE, GetScope()[name].opcodes ] # TODO: fix: index of var is stored in opcode field
-			return inst
-		elif Consume(AUX, '('):
-			FunctionCall()
-		# NOTE: we allow lone expressions but not variables
-		# 		this means that `-a` is allowed but `a` is not
-		else: Error(f'lone variable {name}')
+	name = consumed
+	if name not in GetScope():
+		Error('unknown variable', name)
+		return
+	
+	if Consume(OP, '='):
+		inst = [ *Expression().opcodes, OP_STORE, GetScope()[name].opcodes ] # TODO: fix: index of var is stored in opcode field
+		return inst
+	Error('Assignment : unreachable', name)
 
 def Expression():
 	# Note : over expression, AST_Node is not used, Statements have no type, just instructions
