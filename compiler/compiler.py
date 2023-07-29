@@ -70,6 +70,8 @@ class AST_Node: # AST means Abstract Syntax Tree
 		if self.simple is None:
 			self.simple = True
 
+
+# used for declaring/resolving variables
 ScopeCount = 0
 Scopes = [{}]
 def AddScope():
@@ -93,6 +95,19 @@ def Declare(type, name):
 	GetScope()[name] = AST_Node(type, ScopeCount) 
 	ScopeCount += 1
 
+
+# used for declaring/resolving functions
+functions = {}
+
+@dataclass
+class Function:
+	arguments:	list 	# argument names in order of declaration
+	opcodes:	list 	# the generated code
+
+
+####################################
+## jump utilities
+####################################
 
 # packs a jump offset into 2 bytes
 def JumpOffset(offset):
@@ -219,15 +234,36 @@ def Statement():
 	return inst
 
 def Declaration():
-	if Consume(NAME, 'def') and Consume(NAME):
-		name = consumed
-		if name in GetScope(): Error(name, 'already declared')
-		if Consume(OP, '='):
-			inst = Expression()
-			Declare(inst.type, name)
-			return inst.opcodes
-		elif Consume(AUX, '('): Error('functions not implemented yet')
-	else: Error('no name after def')
+	Consume(NAME, 'def') 
+	if not Consume(NAME):
+		Error('no name after def')
+		return
+	
+	name = consumed
+	if name in GetScope(): Error(f'variable {name} already declared')
+	if name in functions:  Error(f'function {name} already declared')
+	
+	# variable
+	if Consume(OP, '='):
+		inst = Expression()
+		Declare(inst.type, name)
+		return inst.opcodes
+	# function
+	elif Consume(AUX, '('):
+		AddScope()
+		while Consume(NAME):
+			Declare(None, consumed)
+			if Consume(AUX, ')'): break;
+			if not Consume(AUX, ','): Error(f'{name} function signature has unexpected tokens')
+		locals = GetScope().keys() # for now only scope accessible in function is itself
+		inst = Block()
+		functions[name] = Function(locals, inst)
+		PopScope()
+		
+		print(functions) 
+
+def FunctionCall():
+	pass
 
 def Condition(statementName, expression, position = ''):
 	if position: position += ' '
@@ -303,7 +339,8 @@ def Assignment():
 		elif Consume(OP, '='):
 			inst = [ *Expression().opcodes, OP_STORE, GetScope()[name].opcodes ] # TODO: fix: index of var is stored in opcode field
 			return inst
-		elif Consume(AUX, '('): Error('functions not implemented yet')
+		elif Consume(AUX, '('):
+			FunctionCall()
 		# NOTE: we allow lone expressions but not variables
 		# 		this means that `-a` is allowed but `a` is not
 		else: Error(f'lone variable {name}')

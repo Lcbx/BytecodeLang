@@ -88,7 +88,7 @@ class Tokenizer:
 			return EOF(f'line {self.line}')
 		
 		# auxiliary
-		if self.current in '[]{}()':
+		if self.current in ',[]{}()':
 			aux = self.current
 			advance()
 			return AUX(aux)
