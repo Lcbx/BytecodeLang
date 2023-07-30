@@ -416,66 +416,66 @@ def Assignment():
 def Expression():
 	# Note : above this, AST_Node is not used
 	# Statements have no type, just instructions
-	inst = OrExpression()
+	node = OrExpression()
 	
 	# cleanup any transitory variables from anonymous function call
 	locals = list(GetScope().keys())
 	for name in locals:
 		if name[0] == '.': UnDeclare(name)
 	
-	return inst
+	return node
 
 def OrExpression():
-	inst = AndExpression()
+	node = AndExpression()
 	
 	if Consume(NAME, 'or'):
-		Condition('or', inst, 'left')
+		Condition('or', node, 'left')
 		
 		otherCondOPs = Condition('or', OrExpression(), 'right').opcodes
-		inst.opcodes = [ *JumpIfTrue_NoPOP(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), *otherCondOPs ]
+		node.opcodes = [ *JumpIfTrue_NoPOP(node.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), *otherCondOPs ]
 		
-		inst.simple = False
+		node.simple = False
 	
-	return inst
+	return node
 
 def AndExpression():
-	inst = Equality()
+	node = Equality()
 	
 	if Consume(NAME, 'and'):
-		Condition('and', inst, 'left')
+		Condition('and', node, 'left')
 		
 		otherCondOPs = Condition('and', AndExpression(), 'right').opcodes
-		inst.opcodes = [ *JumpIfFalse_NoPOP(inst.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), *otherCondOPs ]
+		node.opcodes = [ *JumpIfFalse_NoPOP(node.opcodes, len(otherCondOPs) + AND_OR_OVERHEAD), *otherCondOPs ]
 		
-		inst.simple = False
+		node.simple = False
 	
-	return inst
+	return node
 
 def Equality():
-	inst = Comparison()
+	node = Comparison()
 	if 	Consume(OP, '==') or Consume(OP, '!='):
 		op = consumed
-		if len(inst.opcodes)==0: Error('missing left operand before', op)
-		inst2 = Comparison()
-		if len(inst2.opcodes)==0: Error('missing right operand after', op)
-		elif op == '==': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_EQ])
-		elif op == '!=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_NEQ])
-	return inst
+		if len(node.opcodes)==0: Error('missing left operand before', op)
+		node2 = Comparison()
+		if len(node2.opcodes)==0: Error('missing right operand after', op)
+		elif op == '==': node = AST_Node(bool, [ *node.opcodes,*node2.opcodes, OP_EQ])
+		elif op == '!=': node = AST_Node(bool, [ *node.opcodes,*node2.opcodes, OP_NEQ])
+	return node
 
 def Comparison():
-	inst = Addition()
+	node = Addition()
 	if Consume(OP, '>') or Consume(OP, '>=') or Consume(OP, '<') or Consume(OP, '<='):
 		op = consumed
-		if len(inst.opcodes)==0: Error('missing left operand before', op)
-		inst2 = Addition()
-		if len(inst2.opcodes)==0: Error('missing right operand after', op)
-		elif inst.type in (float, int) and inst2.type == inst.type:
-			if 	 op == '>':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GT])
-			elif op == '>=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GTE])
-			elif op == '<':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LT])
-			elif op == '<=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LTE])
-		else: Error(f'operand types ({inst2.type}, {inst.type}) do not match {op}')
-	return inst
+		if len(node.opcodes)==0: Error('missing left operand before', op)
+		node2 = Addition()
+		if len(node2.opcodes)==0: Error('missing right operand after', op)
+		elif node.type in (float, int) and node2.type == node.type:
+			if 	 op == '>':	 node = AST_Node(bool, [ *node.opcodes,*node2.opcodes, OP_GT])
+			elif op == '>=': node = AST_Node(bool, [ *node.opcodes,*node2.opcodes, OP_GTE])
+			elif op == '<':	 node = AST_Node(bool, [ *node.opcodes,*node2.opcodes, OP_LT])
+			elif op == '<=': node = AST_Node(bool, [ *node.opcodes,*node2.opcodes, OP_LTE])
+		else: Error(f'operand types ({node2.type}, {node.type}) do not match {op}')
+	return node
 
 
 def Addition():
@@ -491,56 +491,56 @@ def Addition():
 	elif Consume(OP, '!'):
 		booleanNegate = True
 	
-	inst = Multiplication()
-	if booleanNegate and inst.type != bool:
-		Error(f'! operation\'s rvalue is not boolean ({inst.type})')
-	elif numberNegate and not inst.type in (float, int):
-		Error(f'- operator\'s rvalue is not a number ({inst.type})')
+	node = Multiplication()
+	if booleanNegate and node.type != bool:
+		Error(f'! operation\'s rvalue is not boolean ({node.type})')
+	elif numberNegate and not node.type in (float, int):
+		Error(f'- operator\'s rvalue is not a number ({node.type})')
 	
 	if numberNegate or booleanNegate :
-		inst.opcodes = [*inst.opcodes, OP_NEG]
+		node.opcodes = [*node.opcodes, OP_NEG]
 	
 	while ConsumeAny(OP,'+-'):
 		op = consumed
-		if len(inst.opcodes)==0: Error('missing left operand before', op)
-		inst2 = Multiplication()
-		if len(inst2.opcodes)==0: Error('missing right operand after', op)
-		elif inst2.type == inst.type:
-			if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
-			elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
-		else: Error(f'operand types ({inst2.type}, {inst.type}) do not match {op}')
+		if len(node.opcodes)==0: Error('missing left operand before', op)
+		node2 = Multiplication()
+		if len(node2.opcodes)==0: Error('missing right operand after', op)
+		elif node2.type == node.type:
+			if node.type in (float, int, str) and op == '+': node = AST_Node(node.type, [ *node.opcodes,*node2.opcodes, OP_ADD])
+			elif node.type in (float, int   ) and op == '-': node = AST_Node(node.type, [ *node.opcodes,*node2.opcodes, OP_SUB])
+		else: Error(f'operand types ({node2.type}, {node.type}) do not match {op}')
 	
-	return inst
+	return node
 
 
 def Multiplication():
-	inst = Primary()
+	node = Primary()
 	while ConsumeAny(OP, '*/'):
 		op = consumed
-		if len(inst.opcodes)==0: Error('missing left operand before', op)
-		inst2 = Primary()
-		if len(inst2.opcodes)==0: Error('missing right operand after', op)
-		elif inst.type in (float, int) and inst2.type == inst.type:
-			if 	 op == '*' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_MUL])
-			elif op == '/' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_DIV])
-		else: Error(f'operand types ({inst2.type}, {inst.type}) do not match {op}')
-	return inst
+		if len(node.opcodes)==0: Error('missing left operand before', op)
+		node2 = Primary()
+		if len(node2.opcodes)==0: Error('missing right operand after', op)
+		elif node.type in (float, int) and node2.type == node.type:
+			if 	 op == '*' : node = AST_Node(node.type, [ *node.opcodes,*node2.opcodes, OP_MUL])
+			elif op == '/' : node = AST_Node(node.type, [ *node.opcodes,*node2.opcodes, OP_DIV])
+		else: Error(f'operand types ({node2.type}, {node.type}) do not match {op}')
+	return node
 
 
 def Primary():
 	global token
-	inst = AST_Node(None, [])
+	node = AST_Node(None, [])
 	
 	if Consume(NAME):
 		name = consumed
 		if   name.upper() == "TRUE":
-			inst = AST_Node( bool, [ OP_TRUE ])
+			node = AST_Node( bool, [ OP_TRUE ])
 		elif name.upper() == "FALSE":
-			inst = AST_Node( bool, [ OP_FALSE ])
+			node = AST_Node( bool, [ OP_FALSE ])
 		
 		elif name in GetScope():
 			var = GetScope()[name]
-			inst = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field
+			node = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field
 		
 		elif name in functions:
 			# will declare locals as .<local>
@@ -549,36 +549,36 @@ def Primary():
 			if Peek(NAME) and token.value[1:] in functions[name].locals:
 				Consume(NAME)
 				var = GetScope()[consumed]
-				inst = AST_Node( var.type, inst + [ OP_LOAD, var.opcodes ])
+				node = AST_Node( var.type, inst + [ OP_LOAD, var.opcodes ])
 			else: Error(f'invalid function call ({name})')
 			
 		else: Error('unknown name', name)
-		return inst
+		return node
 
 	elif Consume(FLOAT):
 		return AST_Node(float, [ OP_FLOAT, *struct.pack('f', consumed) ])
 	
 	elif Consume(INT):
 		val = consumed
-		if 	 val>=-2**7 and val<2**7: 	inst = AST_Node(int, [ OP_INT1, *struct.pack('b', val) ])
-		elif val>=-2**15 and val<2**15:	inst = AST_Node(int, [ OP_INT2, *struct.pack('h', val) ])
-		elif val>=-2**31 and val<2**31:	inst = AST_Node(int, [ OP_INT4, *struct.pack('i', val) ])
+		if 	 val>=-2**7 and val<2**7: 	node = AST_Node(int, [ OP_INT1, *struct.pack('b', val) ])
+		elif val>=-2**15 and val<2**15:	node = AST_Node(int, [ OP_INT2, *struct.pack('h', val) ])
+		elif val>=-2**31 and val<2**31:	node = AST_Node(int, [ OP_INT4, *struct.pack('i', val) ])
 		else: Error('value too high to be an int (use a float ?)')
-		return inst
+		return node
 	
 	elif Consume(STRING):
 		return AST_Node(str, [ OP_STRING, *map(ord,consumed), 0 ])
 	
 	elif Consume(AUX, '('):
-		inst = Expression()
+		node = Expression()
 		if not Consume(AUX, ')'): Error('closing parenthesis ) missing')
-		return inst
+		return node
 	
 	elif type(token) is not EOF: 
 		Error(f'illegal token : \'{token}\'')
 		token = next()
 	
-	return inst
+	return node
 
 
 
