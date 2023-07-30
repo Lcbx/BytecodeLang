@@ -227,7 +227,8 @@ def Block():
 		res = Statement()
 		
 		# this is problematic but necessary
-		if not res:
+		# because lone expressions are accepted and can return empty if nothng is found
+		if res == None:
 			#print('Block end at ',token.context, token)
 			return inst
 		
@@ -240,8 +241,12 @@ def Statement():
 			WhileStatement() if consumed == 'while' else \
 			PrintStatement() if consumed == 'print' else \
 			Assignment()	 if Peek(OP, '=')       else \
-			FunctionCall()	 if Peek(AUX, '(')      else \
-			Expression().opcodes # temporary
+			FunctionCall()	 if Peek(AUX, '(') else None
+	
+	# temporary
+	if inst == None:
+		inst = Expression().opcodes
+		if not inst: inst = None
 	
 	return inst
 
@@ -267,7 +272,7 @@ def Declaration():
 		while Consume(NAME):
 			argName = consumed
 			# TODO: find some way to ensure the call respects types
-			# without explicit type (used bc easier as-is)
+			# without explicit type (used here bc easier)
 			Consume(NAME)
 			type = int    if consumed == 'i' else \
 				   float  if consumed == 'f' else \
@@ -282,11 +287,13 @@ def Declaration():
 		PopScope()
 		# TODO : save internal variables (from GetScope)
 		# so we can access them if the function return is captured
-		functions[name] = Function(locals, inst)
-		print('functions', functions)
+		func = Function(locals, inst)
+		functions[name] = func
 		
-		# getting around bug in block ('if not res')
-		return [ NO_OP ]
+		#print('function', func)
+		#print('functions', functions)
+		
+		return []
 	
 	Error('Declaration : unreachable', name)
 
@@ -385,7 +392,8 @@ def Assignment():
 	Error('Assignment : unreachable', name)
 
 def Expression():
-	# Note : over expression, AST_Node is not used, Statements have no type, just instructions
+	# Note : above this, AST_Node is not used
+	# Statements have no type, just instructions
 	return OrExpression()
 
 def OrExpression():
@@ -437,7 +445,7 @@ def Comparison():
 			elif op == '>=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_GTE])
 			elif op == '<':	 inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LT])
 			elif op == '<=': inst = AST_Node(bool, [ *inst.opcodes,*inst2.opcodes, OP_LTE])
-		else: Error('operand types do not match', op)
+		else: Error(f'operand types ({inst2.type}, {inst.type}) do not match {op}')
 	return inst
 
 
@@ -471,7 +479,7 @@ def Addition():
 		elif inst2.type == inst.type:
 			if inst.type in (float, int, str) and op == '+': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_ADD])
 			elif inst.type in (float, int   ) and op == '-': inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_SUB])
-		else: Error('operand types do not match', op)
+		else: Error(f'operand types ({inst2.type}, {inst.type}) do not match {op}')
 	
 	return inst
 
@@ -486,7 +494,7 @@ def Multiplication():
 		elif inst.type in (float, int) and inst2.type == inst.type:
 			if 	 op == '*' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_MUL])
 			elif op == '/' : inst = AST_Node(inst.type, [ *inst.opcodes,*inst2.opcodes, OP_DIV])
-		else: Error('operand types do not match', op)
+		else: Error(f'operand types ({inst2.type}, {inst.type}) do not match {op}')
 	return inst
 
 

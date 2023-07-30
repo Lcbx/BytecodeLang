@@ -7,7 +7,7 @@ __SECTION__
 compile_Out:
 Error line 1, column 7 : ! operation's rvalue is not boolean (<class 'int'>)
 Error line 1, column 7 : or right condition is not boolean (<class 'int'>)
-Error line 1, column 12 : operand types do not match +
+Error line 1, column 12 : operand types (<class 'int'>, <class 'str'>) do not match +
 3 errors
 __SECTION__
 compile_Err:
