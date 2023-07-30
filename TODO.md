@@ -1,18 +1,17 @@
 ## TODO.md
 This is where I put my pending tasks/ ideas. I could keep around what has been done as cossed-out text, so I can be reminded of the feature list, but it's quite simple right now so...
 
-### FIX :
-- add more test cases
-
 #### bugs
-- vm_simulation crash on wrong filepath
+- vm_simulation crash on wrong filepath (add an error message)
 
 #### compiler
-- add more control structures (for, do/while (?), etc)
-- make better variable assignation and loading
-- support late binding of variables 
-- support functions
+- support late binding of variables and functions
+- support arrays
+- enhance support objects (hybrid approach right now)
 - make compiling smarter and optimized
+- enhance variable assignation and loading
+- add more control structures (for, do/while (?), etc)
+- add iterables (IEnumerable in C#) and functionnal programing
 
 #### language design
 - support basic data structures (at least arrays !)
