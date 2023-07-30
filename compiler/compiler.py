@@ -99,6 +99,14 @@ def Declare(type, name):
 	# TODO: fix: index of var is stored in opcode field
 	GetScope()[name] = AST_Node(type, ScopeCount) 
 	ScopeCount += 1
+	#print('declared', name, type)
+
+# the variables
+def UnDeclare(name):
+	global ScopeCount
+	del GetScope()[name]
+	ScopeCount -= 1
+	#print('undeclared', name)
 
 
 # used for declaring/resolving functions
@@ -106,7 +114,8 @@ functions = {}
 
 @dataclass
 class Function:
-	parameters:	list 	# argument names in order of declaration
+	parameters:	list 	# param names in order of declaration
+	locals:		list	# local names in order of declaration
 	opcodes:	list 	# the generated code
 
 
@@ -255,22 +264,28 @@ def Declaration():
 		Error('no name after def')
 		return
 	
+	
 	name = consumed
 	if name in GetScope(): Error(f'variable {name} already declared')
 	if name in functions:  Error(f'function {name} already declared')
 	
 	# variable
 	if Consume(OP, '='):
-		inst = Expression()
-		Declare(inst.type, name)
-		return inst.opcodes
+		if token.value in functions:
+			Consume(NAME)
+			return FunctionCall(name)
+		else:
+			inst = Expression()
+			Declare(inst.type, name)
+			return inst.opcodes
 	
 	# function
 	elif Consume(AUX, '('):
 		AddScope()
-		locals = [] # ensure they are saved in declaration order
+		args = [] # ensure they are saved in declaration order
 		while Consume(NAME):
 			argName = consumed
+			
 			# TODO: find some way to ensure the call respects types
 			# without explicit type (used here bc easier)
 			Consume(NAME)
@@ -280,14 +295,18 @@ def Declaration():
 				   bool   if consumed == 'b' else \
 				   None
 			Declare(type, argName) 
-			locals.append(argName)
+			
+			args.append(argName)
+			
 			if Consume(AUX, ')'): break;
 			if not Consume(AUX, ','): Error(name, 'function signature has unexpected tokens')
+		if consumed != ')': Error(name, 'function signature not finished')
+		
 		inst = Block()
+		locals = GetScope()
 		PopScope()
-		# TODO : save internal variables (from GetScope)
-		# so we can access them if the function return is captured
-		func = Function(locals, inst)
+		
+		func = Function(args, locals, inst)
 		functions[name] = func
 		
 		#print('function', func)
@@ -297,7 +316,7 @@ def Declaration():
 	
 	Error('Declaration : unreachable', name)
 
-def FunctionCall():
+def FunctionCall( savedLocalName = None):
 	name = consumed
 	if not name in functions:
 		Error(name, 'function has not been defined')
@@ -315,7 +334,10 @@ def FunctionCall():
 	
 	inst.extend( func.opcodes )
 	
-	# TODO : transfer scope locals to parent scope if function return is used
+	if savedLocalName != None:
+		for lName in func.locals.keys():
+			Declare(func.locals[lName].type, f'{savedLocalName}.{lName}')
+	
 	return inst
 
 def Condition(statementName, expression, position = ''):
@@ -394,7 +416,14 @@ def Assignment():
 def Expression():
 	# Note : above this, AST_Node is not used
 	# Statements have no type, just instructions
-	return OrExpression()
+	inst = OrExpression()
+	
+	# cleanup any transitory variables from anonymous function call
+	locals = list(GetScope().keys())
+	for name in locals:
+		if name[0] == '.': UnDeclare(name)
+	
+	return inst
 
 def OrExpression():
 	inst = AndExpression()
@@ -512,10 +541,22 @@ def Primary():
 		elif name in GetScope():
 			var = GetScope()[name]
 			inst = AST_Node( var.type, [ OP_LOAD, var.opcodes ]) # TODO: fix: index of var is stored in opcode field
+		
+		elif name in functions:
+			# will declare locals as .<local>
+			inst = FunctionCall("") 
+			# .c => c in locals
+			if Peek(NAME) and token.value[1:] in functions[name].locals:
+				Consume(NAME)
+				var = GetScope()[consumed]
+				inst = AST_Node( var.type, inst + [ OP_LOAD, var.opcodes ])
+			else: Error(f'invalid function call ({name})')
+			
 		else: Error('unknown name', name)
+		return inst
 
 	elif Consume(FLOAT):
-		inst = AST_Node(float, [ OP_FLOAT, *struct.pack('f', consumed) ])
+		return AST_Node(float, [ OP_FLOAT, *struct.pack('f', consumed) ])
 	
 	elif Consume(INT):
 		val = consumed
@@ -523,18 +564,20 @@ def Primary():
 		elif val>=-2**15 and val<2**15:	inst = AST_Node(int, [ OP_INT2, *struct.pack('h', val) ])
 		elif val>=-2**31 and val<2**31:	inst = AST_Node(int, [ OP_INT4, *struct.pack('i', val) ])
 		else: Error('value too high to be an int (use a float ?)')
+		return inst
 	
 	elif Consume(STRING):
-		inst = AST_Node(str, [ OP_STRING, *map(ord,consumed), 0 ])
+		return AST_Node(str, [ OP_STRING, *map(ord,consumed), 0 ])
 	
 	elif Consume(AUX, '('):
 		inst = Expression()
-		if not Consume(AUX, ')'):
-			Error('closing parenthesis ) missing')
+		if not Consume(AUX, ')'): Error('closing parenthesis ) missing')
+		return inst
 	
 	elif type(token) is not EOF: 
 		Error(f'illegal token : \'{token}\'')
 		token = next()
+	
 	return inst
 
 

@@ -1,0 +1,27 @@
+tokenize_Out:
+NAME: def, NAME: test, AUX: (, NAME: argA, NAME: i, AUX: ,, NAME: argB, NAME: i, AUX: ), TABS: 1, NAME: def, NAME: c, OP: =, NAME: argA, OP: +, NAME: argB, TABS: 1, NAME: c, OP: =, NAME: c, OP: +, INT: 1, NAME: def, NAME: d, OP: =, NAME: test, AUX: (, INT: 1, AUX: ,, INT: 2, AUX: ), NAME: print, NAME: d.c, EOF: line 9
+__SECTION__
+tokenize_Err:
+
+__SECTION__
+compile_Out:
+0 errors
+19 instructions [4, 1, 4, 2, 9, 0, 9, 1, 23, 9, 2, 4, 1, 23, 10, 2, 9, 2, 30]
+__SECTION__
+compile_Err:
+
+__SECTION__
+simulation_Out:
+0    	OP_INT1 => 1 --
+2    	OP_INT1 => 2 --
+4    	OP_LOAD => var0 (1) --
+6    	OP_LOAD => var1 (2) --
+8    	OP_ADD => 3 --
+9    	OP_LOAD => var2 (3) --
+11   	OP_INT1 => 1 --
+13   	OP_ADD => 4 --
+14   	OP_STORE => var2 = 4 (was 3) --
+16   	OP_LOAD => var2 (4) --
+18   	OP_PRINT => print 4 --
+__SECTION__
+simulation_Err:

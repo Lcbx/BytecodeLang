@@ -1,0 +1,7 @@
+
+def test(argA i, argB i)
+	def c = argA + argB
+	c = c + 1
+
+print test(1,2).c
+

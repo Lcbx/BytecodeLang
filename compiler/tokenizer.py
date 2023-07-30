@@ -103,9 +103,9 @@ class Tokenizer:
 			return OP(op)
 		
 		# name
-		elif self.current.isalpha():
+		elif self.current.isalpha() or self.current == '.':
 			n = ''
-			while self.current.isalpha() or self.current.isdigit():
+			while self.current.isalpha() or self.current.isdigit() or self.current == '.':
 				n += self.current
 				advance()
 			return NAME(n)
